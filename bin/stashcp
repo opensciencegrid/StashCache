@@ -103,10 +103,9 @@ function doStashCpSingle {
 		## send info out to flume
 		hn=$sourcePrefix
 		timestamp=$(date +%s)
-		header="[{ \"headers\" : {\"timestamp\" : \"${timestamp}\", \"host\" : \"${hn}\" },"
-		body="\"body\" : \"$((st1/1000)),$downloadFile,$mySz,$dltm,$OSG_SITE_NAME,$hn\"}]"
-		echo $header$body > data.json
-		timeout 10 curl -X POST -H 'Content-Type: application/json; charset=UTF-8' http://hadoop-dev.mwt2.org:80/ -d @data.json > /dev/null 2>&1 
+		payload="{ \"timestamp\" : \"${timestamp}\", \"host\" : \"${hn}\", \"start_time\": \"$((st1/1000)),$downloadFile,$mySz,$dltm,$OSG_SITE_NAME,$hn\"}]"
+		echo $payload > data.json
+		timeout 10 curl -XPOST http://uct2-es-door.mwt2.org:9200/stashcp/rec/ -d @data.json > /dev/null 2>&1 
 		rm data.json 2>&1
 	else
 		## pull from local cache failed; try again
