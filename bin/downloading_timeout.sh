@@ -14,25 +14,25 @@ start_watchdog(){
 	file="$2"
 	diff="$3"
 	expSize="$4"
-	(( i = timeout ))
 	prevSize=0
-	while (( i > 0 ))
+	newSize=0
+	while (( newSize<expSize ))
 	do
 		if [ -e $file ]; then
+			sleep $timeout #check status after every x seconds
+			sync #need to write to disc for du to work
+			sleep 1 #allow disk to finish writing (technically adds 1 second to next iteration's check)
 			newSize=$(du -b $file | cut -f1)
 			nextSize=$((prevSize+diff))
 			wantSize=$((nextSize<expSize?nextSize:expSize))
-			if [ $newSize -lt $((wantSize)) ]; then
+			if [ $newSize -lt $((wantSize)) ]; then #if time out
 				kill -0 $$ || exit 0
-				sleep 1
-				(( i -= 1 ))
-			else
+			else #if file increases accordingly
 				prevSize=$(du -b $file | cut -f1)
-				(( i = timeout ))
 			fi
-		else
-			sleep 1
-			(( i -= 1 )) ## to avoid infinite loop
+		else 
+			echo "file does not exist"
+			newSize=expSize ## to avoid infinite loop
 		fi
 	done
 	
