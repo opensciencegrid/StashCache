@@ -25,6 +25,9 @@ start_watchdog(){
 			newSize=$(du -b $file | cut -f1)
 			nextSize=$((prevSize+diff))
 			wantSize=$((nextSize<expSize?nextSize:expSize))
+			if [ $newSize -eq $expSize ]; then
+				exit 0
+			fi
 			if [ $newSize -lt $((wantSize)) ]; then #if time out
 				echo "killing process after timeout of $timeout seconds"
 				kill -0 $$
