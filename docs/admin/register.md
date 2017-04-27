@@ -1,0 +1,3 @@
+# Registering StashCache
+
+...coming soon
