@@ -1,6 +1,6 @@
 # StashCache
 
-This documenation serve for Operations team and Site Admins who manage StashCache nodes (origin or cache server; or redirectors). All individual components of StashCache are based on [XRootD](xrootd.org) technology.
+This documenation serve for Operations team and Site Admins who manage StashCache nodes (origin or cache server; or redirectors). All individual components of StashCache are based on [XRootD](http://xrootd.org) technology.
 If you are a user of "stashcp" you want to follow [this](https://support.opensciencegrid.org/support/solutions/articles/12000002775-transferring-data-with-stashcache) document instead.
 
 ---
