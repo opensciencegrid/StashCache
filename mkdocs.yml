@@ -1,0 +1,18 @@
+site_name: StashCache Documentation
+site_url: https://opensciencegrid.github.io/stashcache
+repo_url: https://github.com/opensciencegrid/stashcache
+theme: readthedocs
+
+pages:
+- Home: 'index.md'
+- Cache:
+  - 'admin/install.md'
+  - 'admin/configure.md'
+  - 'admin/register.md'
+  - 'admin/start.md'
+- Operations:
+  - 'ops/upgrades.md'
+
+
+markdown_extensions:
+    - admonition

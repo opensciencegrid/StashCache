@@ -1,6 +1,7 @@
 sudo: required
 env:
   matrix:
+  - BUILD_TYPE=docs
   - OS_TYPE=centos OS_VERSION=6
   - OS_TYPE=centos OS_VERSION=7
   - OS_TYPE=centos OS_VERSION=6 XRD_CACHE="root://xrd-cache-1.t2.ucsd.edu"
@@ -17,6 +18,12 @@ env:
   - OS_TYPE=centos OS_VERSION=7 XRD_CACHE="root://stashcache.grid.uchicago.edu"
   
 
+language: python
+
+before_script:
+- pip install mkdocs
+- pip install MarkdownHighlight
+
 services:
  - docker
 
@@ -30,4 +37,5 @@ before_install:
 
 script:
  # Run tests in Container
+ - if [ "$BUILD_TYPE" = "docs" ]; then bin/stashcp2/tests/build_docs.sh; fi
  - bin/stashcp2/tests/setup_tests.sh ${OS_VERSION}
