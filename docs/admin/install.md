@@ -6,10 +6,10 @@ This document describes how to install a StashCache cache, a server that caches 
 
 Before starting the installation process, consider the following points:
 
-* User IDs: If they do not exist already, the installation will create the Linux user IDs condor and xrootd
-* Service certificate: The StashCache service uses a host certificate at /etc/grid-security/host*.pem
-* Network ports: The StashCache service must talk to the central collector on port 9619 (TCP) and XRootD services on port 1094 (TCP)
-* Hardware requirements: We recommend that a StashCache server has at least 10Gbps connectivity, 1TB of disk space, and 8GB of RAM. 
+* __User IDs:__ If they do not exist already, the installation will create the Linux user IDs condor and xrootd
+* __Service certificate:__ The StashCache service uses a host certificate at `/etc/grid-security/host*.pem`
+* __Network ports:__ The StashCache service must talk to the central collector on port `9619 (TCP)` and XRootD services on port `1094 (TCP)`
+* __Hardware requirements:__ We recommend that a StashCache server has at least 10Gbps connectivity, 1TB of disk space, and 8GB of RAM. 
 
 As with all OSG software installations, there are some one-time steps to prepare in advance:
 
@@ -31,9 +31,8 @@ The StashCache daemon consists of an XRootD server and an HTCondor-based service
    [root@client ~]$ yum update
 ```
    This command will update all packages on your system.
-
 3. Install the StashCache metapackage from OSG3.3 repository:
 ```
    [root@client ~]$ yum install stashcache-daemon fetch-crl stashcache-cache-{server || origin}
 ```
-4. Mount the disk that will be used for the cache to /stash and set owner of the directory to xrootd user.
+4. Mount the disk that will be used for the cache to */stash* and set owner of the directory to *xrootd* user.
