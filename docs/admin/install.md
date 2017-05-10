@@ -14,7 +14,7 @@ Before starting the installation process, consider the following mandatory point
    * and allow XRootD service over HTTP on port `8000 (TCP)`
 * __Hardware requirements:__ We recommend that a StashCache server has at least 10Gbps connectivity, 1TB of disk space, and 8GB of RAM. 
 
-!!! Note:
+:heavy_exclamation_mark: Note:
 If installing authenticated StashCache, you need to do in addition following:
 * __Service certificate:__ create copy of the certificate to `/etc/grid-security/xrd/xrd{cert,key}.pem`
    * set owner of the directory `/etc/grid-security/xrd/` to `*xrootd:xrootd*` user:
@@ -38,18 +38,21 @@ The StashCache daemon consists of an XRootD server and an HTCondor-based service
 ```
    [root@client ~]$ yum clean all --enablerepo=*
 ```
+
 2. Update software:
 ```
    [root@client ~]$ yum update
 ```
    This command will update all packages on your system.
+
 3. Install the StashCache metapackage from OSG3.3 repository:
 ```
    [root@client ~]$ yum install stashcache-daemon fetch-crl stashcache-cache-{server || origin}
 ```
+
 4. Mount the disk that will be used for the cache to */stash* and set owner of the directory to `*xrootd:xrootd*` user.
 
-!!! Note:
+:heavy_exclamation_mark: Note:
 If installing authenticated StashCache, you need additional packages to be installed:
 ```
    [root@client ~]$ yum install xrootd-lcmaps
