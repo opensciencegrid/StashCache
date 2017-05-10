@@ -13,6 +13,7 @@ Before starting the installation process, consider the following mandatory point
    * XRootD service on port `1094 (TCP)`
    * and allow XRootD service over HTTP on port `8000 (TCP)`
 * __Hardware requirements:__ We recommend that a StashCache server has at least 10Gbps connectivity, 1TB of disk space, and 8GB of RAM. 
+   o More information about hardware and system configuration by existing caches you can find at [Upgrade status page](../ops/upgrades.md)
 
 !!! Note:
 :heavy_exclamation_mark: If installing authenticated StashCache, you need to do in addition following:
