@@ -19,4 +19,4 @@ This page is used to track the status of hardware and software used for the Stas
 ...
 
 ## 2016 Table of Caches
-...will add later from twiki [here](https://twiki.grid.iu.edu/bin/view/Documentation/Release3/StashCacheUpgrades)
+...will move later from [twiki](https://twiki.grid.iu.edu/bin/view/Documentation/Release3/StashCacheUpgrades)
