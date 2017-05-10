@@ -4,6 +4,8 @@ This document describes how to install a StashCache cache, a server that caches 
 
 ---
 
+## Installation pre-requisities
+
 Before starting the installation process, consider the following mandatory points:
 
 * __User IDs:__ If they do not exist already, the installation will create the Linux user IDs condor and xrootd
