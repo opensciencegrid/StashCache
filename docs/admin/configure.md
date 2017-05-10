@@ -27,8 +27,6 @@ xrd.report uct2-collectd.mwt2.org:9931
 xrootd.monitor all auth flush 30s window 5s fstat 60 lfn ops xfr 5 dest redir fstat info user uct2-collectd.mwt2.org:9930
 ```
 
-[P](../configs/xrootd-stashcache-origin-server.cfg)
-
 ## Cache server
 !!! Note: 
 :bangbang: While example of the configuration file below provides combination of _authenticated_ and _non-authenticated_ _Cache_, the non-authenticated cache config is considered to load by system as default.
