@@ -27,8 +27,6 @@ xrd.report uct2-collectd.mwt2.org:9931
 xrootd.monitor all auth flush 30s window 5s fstat 60 lfn ops xfr 5 dest redir fstat info user uct2-collectd.mwt2.org:9930
 ```
 
-"{!docs/configs/xrootd-stashcache-origin-server.cfg}"
-
 ## Cache server
 !!! Note: 
 :bangbang: While example of the configuration file below provides combination of _authenticated_ and _non-authenticated_ _Cache_, the non-authenticated cache config is considered to load by system as default.
@@ -117,28 +115,41 @@ xrootd.monitor all auth flush 30s window 5s fstat 60 lfn ops xfr 5 dest redir fs
 
 all.sitename Nebraska
 
+# Optional configuration
 # Remote debugging
 xrootd.diglib * /etc/xrootd/digauth.cf
 ```
 
 ### Authenticated Cache server
 
-:heavy_exclamation_mark: Make sure you've installed `xrootd-lcmaps` package during install [step](install.md##Installing the StashCache metapackage)
+:heavy_exclamation_mark: Make sure you've installed `xrootd-lcmaps` package during install [step](install.md) included following pre-steps:
+* __Service certificate:__ create copy of the certificate to `/etc/grid-security/xrd/xrd{cert,key}.pem`
+   * set owner of the directory `/etc/grid-security/xrd/` to `xrootd:xrootd` user:
+      ```
+      $ chown -R xrootd:xrootd /etc/grid-security/xrd/
+      ```
+* __Network ports__: allow connections on port `8443 (TCP)` 
 
 #### RHEL7
 
+
 #### RHEL6
+...to be added
 
 ### Optional configuration
+
 #### Adjust disk utilization
-To adjust the disk utilization of your StashCache cache, modify the values of pfc.diskusage in /etc/xrootd/xrootd-stashcache-cache-server.cfg:
+
+To adjust the disk utilization of your StashCache cache, modify the values of `pfc.diskusage` in `/etc/xrootd/xrootd-stashcache-cache-server.cfg`:
+
 ```
 pfc.diskusage 0.98 .99
 ```
+
 The first value and second values correspond to the low and high usage watermarks, respectively, in percentages. When the high watermark is reached, the XRootD service will automatically purge cache objects down to the low watermark.
 
 #### Enable remote debugging
-This feature enables remote debugging via the digFS read-only file system
+This feature enables remote debugging via the `digFS` read-only file system
 ```
 xrootd.diglib * /etc/xrootd/digauth.cf
 ```
