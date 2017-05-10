@@ -58,5 +58,5 @@ The StashCache daemon consists of an XRootD server and an HTCondor-based service
 !!! Note: 
 :heavy_exclamation_mark: If installing authenticated StashCache, you need additional packages to be installed:
 ```
-   [root@client ~]$ yum install xrootd-lcmaps
+   [root@client ~]$ yum install xrootd-lcmaps globus-proxy-utils
 ```
