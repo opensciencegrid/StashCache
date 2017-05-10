@@ -16,3 +16,4 @@ pages:
 
 markdown_extensions:
     - admonition
+    - markdown_include.include
