@@ -27,7 +27,7 @@ xrd.report uct2-collectd.mwt2.org:9931
 xrootd.monitor all auth flush 30s window 5s fstat 60 lfn ops xfr 5 dest redir fstat info user uct2-collectd.mwt2.org:9930
 ```
 
-#include "../configs/xrootd-stashcache-origin-server.cfg"
+(../configs/xrootd-stashcache-origin-server.cfg)
 
 ## Cache server
 !!! Note: 
