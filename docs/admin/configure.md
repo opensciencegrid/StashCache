@@ -28,8 +28,10 @@ xrootd.monitor all auth flush 30s window 5s fstat 60 lfn ops xfr 5 dest redir fs
 ```
 
 ## Cache server
-!!! Note: non-authenticated cache is considered as default, see xyz for enabling authenticated cache
-For configuring cache one needs to define `pss.origin redirector.osgstorage.org:1024`. Example of the configuration of cache server is as follows:
+!!! Note: 
+:bangbang: While example of the configuration file below provides combination of _authenticated_ and _non-authenticated_ Cache, the non-authenticated cache is considered as default, see chapter Authenticated Cache server for enabling authenticated cache
+For configuring **cache** one needs to define directive `pss.origin redirector.osgstorage.org:1024` (not `all.manager redirector.osgstorage.org+ 1213` directive as it is in case of configuring **origin**). 
+`StashCache-daemon` package provides default configuration file `/etc/xrootd/xrootd-stashcache-cache-server.cfg`. Example of the configuration of cache server is as follows:
 ```
 all.export  /
 set cachedir = /stash
@@ -116,19 +118,23 @@ all.sitename Nebraska
 xrootd.diglib * /etc/xrootd/digauth.cf
 ```
 
-### Enabling authenticated cache
+### Authenticated Cache server
+
+:heavy_exclamation_mark: Make sure you've installed `xrootd-lcmaps` package during install [step](install.md##Installing the StashCache metapackage)
+
 #### RHEL7
 
 #### RHEL6
 
-### Adjust disk utilization
+### Optional configuration
+#### Adjust disk utilization
 To adjust the disk utilization of your StashCache cache, modify the values of pfc.diskusage in /etc/xrootd/xrootd-stashcache-cache-server.cfg:
 ```
 pfc.diskusage 0.98 .99
 ```
 The first value and second values correspond to the low and high usage watermarks, respectively, in percentages. When the high watermark is reached, the XRootD service will automatically purge cache objects down to the low watermark.
 
-### Enable remote debugging
+#### Enable remote debugging
 This feature enables remote debugging via the digFS read-only file system
 ```
 xrootd.diglib * /etc/xrootd/digauth.cf
