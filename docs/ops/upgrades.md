@@ -6,5 +6,7 @@ This page is used to track the status of hardware and software used for the Stas
 
 | *Hosting site* | *Hostname* | *XRootD version* | *OS* | *CPU* | *RAM* | *Disk (cache) space* | *Disk configuration* | *Connectivity* | *Notes* | *Last update* |
 |----------------|------------|------------------|------|-------|-------|----------------------|----------------------|----------------|---------|---------------|
-|                |            |                  |      |       |       |                      |                      |                |         |               |
-
+| BNL |   |   |   |   |   |   |   |   |   |   |
+| BNL |   |   |   |   |   |   |   |   |   |   |
+| BNL |   |   |   |   |   |   |   |   |   |   |
+| BNL |   |   |   |   |   |   |   |   |   |   |
