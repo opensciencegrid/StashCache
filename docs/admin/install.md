@@ -17,10 +17,10 @@ Before starting the installation process, consider the following mandatory point
 !!! Note:
 :heavy_exclamation_mark: If installing authenticated StashCache, you need to do in addition following:
 * __Service certificate:__ create copy of the certificate to `/etc/grid-security/xrd/xrd{cert,key}.pem`
-   * set owner of the directory `/etc/grid-security/xrd/` to `*xrootd:xrootd*` user:
-   ```
-   $ chown -R xrootd:xrootd /etc/grid-security/xrd/
-   ```
+   * set owner of the directory `/etc/grid-security/xrd/` to `xrootd:xrootd` user:
+      ```
+      $ chown -R xrootd:xrootd /etc/grid-security/xrd/
+      ```
 * __Network ports__: allow connections on port `8443 (TCP)` 
 
 As with all OSG software installations, there are some one-time steps to prepare in advance:
