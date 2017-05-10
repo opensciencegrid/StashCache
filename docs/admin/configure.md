@@ -27,13 +27,12 @@ xrd.report uct2-collectd.mwt2.org:9931
 xrootd.monitor all auth flush 30s window 5s fstat 60 lfn ops xfr 5 dest redir fstat info user uct2-collectd.mwt2.org:9930
 ```
 
-```
 !INCLUDE "../configs/xrootd-stashcache-origin-server.cfg"
-```
 
 ## Cache server
 !!! Note: 
-:bangbang: While example of the configuration file below provides combination of _authenticated_ and _non-authenticated_ Cache, the non-authenticated cache is considered as default, see chapter Authenticated Cache server for enabling authenticated cache
+:bangbang: While example of the configuration file below provides combination of _authenticated_ and _non-authenticated_ _Cache_, the non-authenticated cache config is considered to load by system as default.
+
 For configuring **cache** one needs to define directive `pss.origin redirector.osgstorage.org:1024` (not `all.manager redirector.osgstorage.org+ 1213` directive as it is in case of configuring **origin**). 
 `StashCache-daemon` package provides default configuration file `/etc/xrootd/xrootd-stashcache-cache-server.cfg`. Example of the configuration of cache server is as follows:
 ```
