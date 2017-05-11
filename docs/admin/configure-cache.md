@@ -1,5 +1,7 @@
 # Configuring Cache Server
 
+Packages installed: `stashcache-daemon fetch-crl stashcache-cache-server`
+
 The following section describes required configuration to have a functional StashCache Cache (not origin server!). StashCache Cache package `stashcache-cache-server` needs to be manually configured from pre-existing xrootd configuration.
 
 ## Cache server
@@ -103,7 +105,7 @@ xrootd.diglib * /etc/xrootd/digauth.cf
 
 ## Authenticated Cache server
 
-:heavy_exclamation_mark: Make sure you've installed `xrootd-lcmaps` and `globus-proxy-utils` packages during [install step here](install.md) included following pre-steps:
+:heavy_exclamation_mark: Make sure you've installed `xrootd-lcmaps` and `globus-proxy-utils` packages during [install step here](install.md) included following pre-requisities:
 * __Service certificate:__ create copy of the certificate to `/etc/grid-security/xrd/xrd{cert,key}.pem`
    * set owner of the directory `/etc/grid-security/xrd/` to `xrootd:xrootd` user:
       ```
