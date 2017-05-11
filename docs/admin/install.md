@@ -1,10 +1,13 @@
 # Installation Guide
 
-This document describes how to install a StashCache service (Origin or Cache). The installation utilizes XRootD and HTCondor for file storage and monitoring, respectively.
+This document describes how to install a StashCache service (Origin or Cache). The installation utilizes XRootD and HTCondor for file storage and monitoring, respectively. The role of the Origin and Cache is different, following explanation may help to decide when would you need to install which:
+
+* [StashCache cache](admin/configure-cache.md): role of **"cache"** server is to keep data cached and immediately available (via [stashcp](https://support.opensciencegrid.org/support/solutions/articles/12000002775-transferring-data-with-stashcach))within Stash federation (without re-transfering from "origin").
+* [StashCache origin](admin/configure-origin.md): **"origin"** is data server to host files locally and serve them to users upon transfer request (via [stashcp](https://support.opensciencegrid.org/support/solutions/articles/12000002775-transferring-data-with-stashcach)) unless data are already cached.
 
 ---
 
-## Installation pre-requisities
+## Installation pre-requisities for Origin and Cache
 
 Before starting the installation process, consider the following mandatory points:
 

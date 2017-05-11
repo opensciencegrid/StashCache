@@ -2,11 +2,11 @@
 
 Packages installed: `stashcache-daemon fetch-crl stashcache-cache-server`
 
-The following section describes required configuration to have a functional StashCache Cache (not origin server!). StashCache Cache package `stashcache-cache-server` needs to be manually configured from pre-existing XRootD configuration.
+The following section describes required configuration to have a functional non-authenticated StashCache Cache (not origin server!). StashCache Cache package `stashcache-cache-server` needs to be manually configured from pre-existing XRootD configuration.
 
 ## Cache server
 !!! Note: 
-:bangbang: While example of the configuration file below provides combination of _authenticated_ and _non-authenticated_ _Cache_, the non-authenticated cache config is considered to be default option. If you're about to configure in addition _authenticated cache_ read to the end of this document and then follow post-installation of [authenticated part here](configure-cache-auth.md).
+:bangbang: While example of the configuration file below provides combination of _authenticated_ and _non-authenticated_ _Cache_, the non-authenticated cache is considered to be default and authenticated cache just optional (additional) service. If you're about to configure in addition _authenticated cache_ read to the end of this document and then follow post-installation of [authenticated part here](configure-cache-auth.md).
 
 For configuring **cache** one needs to define directive `pss.origin redirector.osgstorage.org:1024` (not `all.manager redirector.osgstorage.org+ 1213` directive as it is in case of [configuring origin](configure-origin.md)). 
 `StashCache-daemon` package provides default configuration file `/etc/xrootd/xrootd-stashcache-cache-server.cfg`. Example of the configuration of cache server is as follows:
@@ -111,15 +111,15 @@ In Authfile you want to allow local reads below `$(cachedir)` defined in the mai
    Disallow: /
 ```
 
-Test include:
-{!docs/configs/xrootd-stashcache-cache-server.cfg!}
-
 ### RHEL7
 On RHEL7 system, you need to run following systemd unit:
-* `xrootd@stashcache-cache-server.service`
+* `systemctl start xrootd@stashcache-cache-server.service`
+* `systemctl start condor.service`
+
+Please, refer to [start services document](../ops/start.md) for more information.
 
 ### RHEL6
-...to be added
+...to be added, old doc for RHEL6 configuration resides temporarily [here](https://twiki.grid.iu.edu/bin/view/Documentation/Release3/InstallStashCache).
 
 When ready with configuration, please [register](../ops/register.md) and [start](../ops/start.md) your StashCache Cache server.
 If you'd like to configure in addition authenticated cache instance, please follow [this](configure-cache-auth.md) document.

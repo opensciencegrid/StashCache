@@ -31,7 +31,12 @@ Where `hostname` is the string returned by the hostname command. The output of t
 | XRootD | `xrootd@stashcache-origin-server.service` | RHEL7 |
 | XRootD | `cmsd@stashcache-origin-server.service` | RHEL7  |
 
-### Validating Origin server
+### Test CVMFS accessibility via Cache server
+```
+[user@client ~]$ curl -O http://cache_host:8000/user/dweitzel/public/blast/queries/query1
+```
+
+### Test Origin server availability in Stash Federation
 To verify that your origin is being subscribed to the redirector, run the following command:
 ```
 [user@client ~]$ xrdmapc --list s redirector.opensciencegrid.org:1094 

@@ -1,6 +1,6 @@
 # Configuring Cache Server with authentication
 
-In addition to default Cache Server instance configured [here](configure-cache.md), you have option to enable authenticated cache. This chapter describes all the steps needed. 
+Before you continue, make sure [default Cache Server](configure-cache.md) is configured on first place. Enabling authenticated cache is optionali and additional do default cache instance. This chapter describes all the steps needed. 
 
 Packages installed: `stashcache-daemon fetch-crl stashcache-cache-server xrootd-lcmaps globus-proxy-utils`
 
@@ -94,6 +94,11 @@ On RHEL7 system, you need to configure and run following systemd units:
    Thu 2017-05-11 00:00:00 CDT  54min left Wed 2017-05-10 00:00:01 CDT  23h ago xrootd-renew-proxy.timer xrootd-renew-proxy.service
 ```
 
+4. Reload daemons:
+```
+   [root@client ~]$ systemctl daemon-reload
+```
+
 #### CRLs updates
 It is very important to keep CRL list updated from cron:
 1. Enable fetch-crl-cron
@@ -104,6 +109,11 @@ It is very important to keep CRL list updated from cron:
 2. Start fetch-crl-cron
 ```
    [root@client ~]$ systemctl start fetch-crl-cron
+```
+
+3. Reload daemons:
+```
+   [root@client ~]$ systemctl daemon-reload
 ```
 
 ### RHEL6
