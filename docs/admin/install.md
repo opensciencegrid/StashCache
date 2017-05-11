@@ -48,15 +48,15 @@ The StashCache daemon consists of an XRootD server and an HTCondor-based service
 ```
 
 3. Install the StashCache metapackage from OSG repository:
-   * if you are installing Origin server:
-```
-   [root@client ~]$ yum install stashcache-daemon fetch-crl stashcache-cache-origin
-```
 
+   * if you are installing Origin server:
+   ```
+      [root@client ~]$ yum install stashcache-daemon fetch-crl stashcache-cache-origin
+   ```
    * if you are installing Cache server:
-```
-   [root@client ~]$ yum install stashcache-daemon fetch-crl stashcache-cache-server
-```
+   ```
+      [root@client ~]$ yum install stashcache-daemon fetch-crl stashcache-cache-server
+   ```
 
 !!! Note: 
 :heavy_exclamation_mark: If installing authenticated StashCache Cache server, you need additional packages to be installed:
