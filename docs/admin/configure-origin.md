@@ -29,4 +29,12 @@ xrd.report uct2-collectd.mwt2.org:9931
 xrootd.monitor all auth flush 30s window 5s fstat 60 lfn ops xfr 5 dest redir fstat info user uct2-collectd.mwt2.org:9930
 ```
 
+### RHEL7
+On RHEL7 system, you need to run following systemd units:
+* `xrootd@stashcache-cache-origin.service`
+* `cmsd@stashcache-cache-origin.service`
+
+### RHEL6
+...to be added
+
 When ready with configuration, please [register](../ops/register.md) and [start](../ops/start.md) your StashCache Origin server.

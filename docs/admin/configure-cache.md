@@ -6,7 +6,7 @@ The following section describes required configuration to have a functional Stas
 
 ## Cache server
 !!! Note: 
-:bangbang: While example of the configuration file below provides combination of _authenticated_ and _non-authenticated_ _Cache_, the non-authenticated cache config is considered to be default option. If you're about to configure in addition _authenticated cache_ read to the end of this document.
+:bangbang: While example of the configuration file below provides combination of _authenticated_ and _non-authenticated_ _Cache_, the non-authenticated cache config is considered to be default option. If you're about to configure in addition _authenticated cache_ read to the end of this document and then follow post-installation of [authenticated part here](configure-cache-auth.md).
 
 For configuring **cache** one needs to define directive `pss.origin redirector.osgstorage.org:1024` (not `all.manager redirector.osgstorage.org+ 1213` directive as it is in case of [configuring origin](configure-origin.md)). 
 `StashCache-daemon` package provides default configuration file `/etc/xrootd/xrootd-stashcache-cache-server.cfg`. Example of the configuration of cache server is as follows:
@@ -98,11 +98,18 @@ xrootd.diglib * /etc/xrootd/digauth.cf
 ```
 
 ### Add Authfile for non-authenticated cache
-In Authfile you want want allow local reads below `$(cachedir)` defined in the main config. Example of Authfile:
+In Authfile you want to allow local reads below `$(cachedir)` defined in the main config. Example of Authfile:
 ```
    [root@client ~]$ cat /etc/xrootd/Authfile-noauth 
    u * /user/ligo -rl / rl
 ```
+
+### RHEL7
+On RHEL7 system, you need to run following systemd unit:
+* `xrootd@stashcache-cache-server.service`
+
+### RHEL6
+...to be added
 
 When ready with configuration, please [register](../ops/register.md) and [start](../ops/start.md) your StashCache Cache server.
 If you'd like to configure in addition authenticated cache instance, please follow [this](configure-cache-auth.md) document.

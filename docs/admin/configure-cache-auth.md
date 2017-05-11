@@ -14,6 +14,8 @@ Packages installed: `stashcache-daemon fetch-crl stashcache-cache-server xrootd-
       ```
 * __Network ports__: allow connections on port `8443 (TCP)` 
 
+:heavy_exclamation_mark: Beware, authenticated cache requires presence of the config file `/etc/xrootd/xrootd-stashcache-cache-server.cfg`. 
+
 Now, create symbolic link to existing configuration file with `-auth` postfix:
 ```
    [root@client ~]$ cd /etc/xrootd/
@@ -59,7 +61,8 @@ On RHEL7 system, you need to configure in addition following systemd units:
 ```
    [root@client ~]$ systemctl daemon-reload
 ```
-Start proxy daemon:
+
+3. Start proxy daemon:
 ```
    
 ```
@@ -91,14 +94,15 @@ Start proxy daemon:
    [root@client ~]$ systemctl list-timers xrootd-renew-proxy*
 ```
 
-#### Add Authfile for authenticated cache
+### RHEL6
+...to be added
+
+### Add Authfile for authenticated cache
+Authfile for authenticated cache may differ from `/etc/xrootd/Authfile-noauth` defined in [noauth configuration](configure-cache.md). Example:
 ```
    [root@client ~]$ cat /etc/xrootd/Authfile-auth 
    g /osg/ligo /user/ligo r
    u ligo /user/ligo lr / rl
 ```
-
-### RHEL6
-...to be added
 
 When ready with configuration, please [register](../ops/register.md) and [start](../ops/start.md) your StashCache Cache server.
