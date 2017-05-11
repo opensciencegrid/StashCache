@@ -24,8 +24,14 @@ To register a cache instance go [here](https://oim.grid.iu.edu/oim/resourceedit)
 ### Confirming and submitting StashCache resource registration: 
 * you must click the __"Acceptable Use Policy"__ checkbox
 ![FormConfirm](../images/resource-confirm.png)
+Hit the __blue__ submit button.
 
 ## Configuring resource monitoring for RSV
-E.g. for the Indiana instance the status of the following command is checked: `xrdcp root://redirector.osgstorage.org//stash/user/test.1M /tmp/dump`
+E.g. for the Nebraska instance the status of the following command is checked: 
+```
+[user@client ~]$ xrdcp root://hcc-stash.unl.edu//stash/user/test.1M /tmp/dump
+```
 If the return status is zero, the cache is working, otherwise it is not. What we need from you is:
 * the equivalent `//stash/user/test.1M` a file you select that will always be there.
+
+When ready with registration, finish your configuration and [start](../ops/start.md) your StashCache services.
