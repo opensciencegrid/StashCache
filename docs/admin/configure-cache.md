@@ -2,7 +2,7 @@
 
 Packages installed: `stashcache-daemon fetch-crl stashcache-cache-server`
 
-The following section describes required configuration to have a functional StashCache Cache (not origin server!). StashCache Cache package `stashcache-cache-server` needs to be manually configured from pre-existing xrootd configuration.
+The following section describes required configuration to have a functional StashCache Cache (not origin server!). StashCache Cache package `stashcache-cache-server` needs to be manually configured from pre-existing XRootD configuration.
 
 ## Cache server
 !!! Note: 

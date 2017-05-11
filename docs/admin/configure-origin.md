@@ -2,7 +2,7 @@
 
 Packages installed: `stashcache-daemon fetch-crl stashcache-origin-server`
 
-The following section describes required configuration to have a functional StashCache Origin (not cache server!). StashCache Origin package `stashcache-cache-origin` needs to be manually configured from pre-existing xrootd configuration.
+The following section describes required configuration to have a functional StashCache Origin (not cache server!). StashCache Origin package `stashcache-cache-origin` needs to be manually configured from pre-existing XRootD configuration.
 
 ## Origin server
 The origin server connects only to a redirector (not directly to cache server), thus minimal xrootd configuration is required. `StashCache-daemon` package provides default configuration file `/etc/xrootd/xrootd-stashcache-origin-server.cfg`. Example of the configuration of origin server is as follows:
