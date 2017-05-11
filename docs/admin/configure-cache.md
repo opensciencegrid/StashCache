@@ -105,3 +105,4 @@ In Authfile you want want allow local reads below `$(cachedir)` defined in the m
 ```
 
 When ready with configuration, please [register](../ops/register.md) and [start](../ops/start.md) your StashCache Cache server.
+If you'd like to configure in addition authenticated cache instance, please follow [this](configure-cache-auth.md) document.
