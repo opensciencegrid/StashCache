@@ -24,20 +24,19 @@ Now, create symbolic link to existing configuration file with `-auth` postfix:
 
 ### RHEL7
 
-On RHEL7 system, you need to configure in addition following systemd units:
+On RHEL7 system, you need to configure and run following systemd units:
 * `xrootd@stashcache-cache-server-auth.service`
 * `xrootd-renew-proxy.service`
 * `xrootd-renew-proxy.timer`
+* `fetch-crl-cron`
 
 #### Auth.service
 1. Enable `xrootd@stashcache-cache-server-auth.service` instance:
-
-2. Create the file with following content:
 ```
-   [root@client ~]$ service xrootd@stashcache-cache-server-auth status
+   [root@client ~]$ systemctl enable xrootd@stashcache-cache-server-auth
 ```
 
-3. Reload daemons:
+2. Reload daemons:
 ```
    [root@client ~]$ systemctl daemon-reload
 ```
@@ -64,7 +63,7 @@ On RHEL7 system, you need to configure in addition following systemd units:
    [root@client ~]$ systemctl daemon-reload
 ```
 
-#### Timer configuration
+#### Proxy.timer
 1. Create the file with following content:
 ```
    [root@client ~]$ cat /usr/lib/systemd/system/xrootd-renew-proxy.timer
@@ -87,8 +86,24 @@ On RHEL7 system, you need to configure in addition following systemd units:
 3. Start and check if timer is active and working:
 ```
    [root@client ~]$ systemctl start xrootd-renew-proxy.timer
+   ...
    [root@client ~]$ systemctl is-active xrootd-renew-proxy.timer
+   active
    [root@client ~]$ systemctl list-timers xrootd-renew-proxy*
+   NEXT                         LEFT       LAST                         PASSED  UNIT                     ACTIVATES
+   Thu 2017-05-11 00:00:00 CDT  54min left Wed 2017-05-10 00:00:01 CDT  23h ago xrootd-renew-proxy.timer xrootd-renew-proxy.service
+```
+
+#### CRLs updates
+It is very important to keep CRL list updated from cron:
+1. Enable fetch-crl-cron
+```
+   [root@client ~]$ systemctl enable fetch-crl-cron
+```
+
+2. Start fetch-crl-cron
+```
+   [root@client ~]$ systemctl start fetch-crl-cron
 ```
 
 ### RHEL6
