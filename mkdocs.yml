@@ -8,6 +8,8 @@ pages:
 - Install: 'admin/install.md'
 - Cache server:
   - 'admin/configure-cache.md'
+  - 'admin/configure-cache-auth.md'
+  - 'admin/configure-cache-optional.md'
 - Origin server:
   - 'admin/configure-origin.md'
 - Operations:
