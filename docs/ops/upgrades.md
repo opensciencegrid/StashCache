@@ -4,8 +4,8 @@ This page is used to track the status of hardware and software used for the Stas
 
 ## 2017 Table of Caches
 
-| *Hosting site* | *Hostname* | *XRootD version* | *OS* | *CPU* | *RAM* | *Disk (cache) space* | *Disk configuration* | *Connectivity* | *Notes* | *Last update* |
-|----------------|------------|------------------|------|-------|-------|----------------------|----------------------|----------------|---------|---------------|
+| **Hosting site** | **Hostname** | **XRootD version** | **OS** | **CPU** | **RAM** | **Disk (cache) space** | **Disk configuration** | **Connectivity** | **Notes** | **Last update** |
+|------------------|--------------|--------------------|--------|---------|---------|------------------------|------------------------|------------------|-----------|-----------------|
 | Syracuse | its-condor-xrootd1.syr.edu |   |   |   |   |   |   |   |   |   |
 | BNL | osgxroot.usatlas.bnl.gov |   |   |   |   |   |   |   |   |   |
 | FZU | novastore.farm.particle.cz | 4.4.0 |   | 2x Xeon(R) E5-2630 @2.30GHz  | 32GB  | 30TB  | 12x3TB, RAID6, XFS  | 10Gbps  |   | 10-28-2016  |
