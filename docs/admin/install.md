@@ -20,8 +20,7 @@ Before starting the installation process, consider the following mandatory point
 * __Hardware requirements:__ We recommend that a StashCache server has at least 10Gbps connectivity, 1TB of disk space, and 8GB of RAM. 
    * More information about hardware and system configuration of existing caches you can find at [Upgrade status page](../ops/upgrades.md).
 
-!!! Note:
-:heavy_exclamation_mark: If installing authenticated StashCache, you need to do in addition following:
+If installing authenticated StashCache, you need to do in addition following:
 * __Service certificate:__ create copy of the certificate to `/etc/grid-security/xrd/xrd{cert,key}.pem`
    * set owner of the directory `/etc/grid-security/xrd/` to `xrootd:xrootd` user:
       ```
@@ -61,8 +60,7 @@ The StashCache daemon consists of an XRootD server and an HTCondor-based service
       [root@client ~]$ yum install stashcache-daemon fetch-crl stashcache-cache-server
    ```
 
-!!! Note: 
-:heavy_exclamation_mark: If installing authenticated StashCache Cache server, you need additional packages to be installed:
+!!! Note: If installing authenticated StashCache Cache server, you need additional packages to be installed:
 ```
    [root@client ~]$ yum install xrootd-lcmaps globus-proxy-utils
 ```
