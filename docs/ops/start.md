@@ -47,6 +47,7 @@ The output should list hostname of your service. If not, look for any sings of t
 
 ## Start/stop services
 | **To...** | **Run the command...** | **Notes** |
+|-----------|------------------------|-----------|
 | Start a service | systemctl start SERVICE-NAME | RHEL7 |
 | Stop a service | systemctl stop SERVICE-NAME | RHEL7 |
 | Status | systemctl status SERVICE-NAME | RHEL7 | 
