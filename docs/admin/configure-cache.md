@@ -6,7 +6,7 @@ The following section describes required configuration to have a functional Stas
 !!! Note: 
 :bangbang: While example of the configuration file below provides combination of _authenticated_ and _non-authenticated_ _Cache_, the non-authenticated cache config is considered to be default option. If you're about to configure in addition _authenticated cache_ read to the end of this document.
 
-For configuring **cache** one needs to define directive `pss.origin redirector.osgstorage.org:1024` (not `all.manager redirector.osgstorage.org+ 1213` directive as it is in case of configuring **origin**). 
+For configuring **cache** one needs to define directive `pss.origin redirector.osgstorage.org:1024` (not `all.manager redirector.osgstorage.org+ 1213` directive as it is in case of [configuring origin](configure-origin.md)). 
 `StashCache-daemon` package provides default configuration file `/etc/xrootd/xrootd-stashcache-cache-server.cfg`. Example of the configuration of cache server is as follows:
 ```
 all.export  /
@@ -220,4 +220,4 @@ all allow host h=abc.org
 all allow host h=*.xyz.edu
 ```
 
-When ready with configuration, please [register](register.md) and [start](start.md) your StashCache Cache server.
+When ready with configuration, please [register](../ops/register.md) and [start](../ops/start.md) your StashCache Cache server.
