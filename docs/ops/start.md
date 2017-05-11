@@ -18,23 +18,23 @@ Ensure that your `/stash` disk is mounted, and then start `xrootd` and `condor` 
 | HTCondor | `condor.service` | RHEL7  |
 | Fetch CRL | `fetch-crl-cron` | RHEL7 |
 
-### Validating Cache server
+### Test Cache server reports to HTCondor collector
 To verify that your cache is being monitored properly, run the following command:
 ```
 [user@client ~]$ condor_status -any -l -const "Name==\"xrootd@`hostname`\""
 ```
 Where `hostname` is the string returned by the hostname command. The output of the above command should provide an HTCondor ClassAd that details the status of your cache.
 
+### Test CVMFS accessibility via Cache server
+```
+[user@client ~]$ curl -O http://cache_host:8000/user/dweitzel/public/blast/queries/query1
+```
+
 ## Origin server services
 | **Software** | **Service name** | **Notes** |
 |--------------|------------------|-----------|
 | XRootD | `xrootd@stashcache-origin-server.service` | RHEL7 |
 | XRootD | `cmsd@stashcache-origin-server.service` | RHEL7  |
-
-### Test CVMFS accessibility via Cache server
-```
-[user@client ~]$ curl -O http://cache_host:8000/user/dweitzel/public/blast/queries/query1
-```
 
 ### Test Origin server availability in Stash Federation
 To verify that your origin is being subscribed to the redirector, run the following command:
