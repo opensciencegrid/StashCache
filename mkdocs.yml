@@ -5,14 +5,17 @@ theme: readthedocs
 
 pages:
 - Home: 'index.md'
-- Cache:
-  - 'admin/install.md'
-  - 'admin/configure.md'
-  - 'admin/register.md'
-  - 'admin/start.md'
+- Install: 'admin/install.md'
+- Cache server:
+  - 'admin/configure-cache.md'
+  - 'admin/configure-cache-auth.md'
+  - 'admin/configure-cache-optional.md'
+- Origin server:
+  - 'admin/configure-origin.md'
 - Operations:
+  - 'ops/register.md'
+  - 'ops/start.md'
   - 'ops/upgrades.md'
-
 
 markdown_extensions:
     - admonition

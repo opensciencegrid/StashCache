@@ -28,8 +28,11 @@ xrootd.monitor all auth flush 30s window 5s fstat 60 lfn ops xfr 5 dest redir fs
 ```
 
 ## Cache server
-!!! Note: non-authenticated cache is considered as default, see xyz for enabling authenticated cache
-For configuring cache one needs to define `pss.origin redirector.osgstorage.org:1024`. Example of the configuration of cache server is as follows:
+!!! Note: 
+:bangbang: While example of the configuration file below provides combination of _authenticated_ and _non-authenticated_ _Cache_, the non-authenticated cache config is considered to load by system as default.
+
+For configuring **cache** one needs to define directive `pss.origin redirector.osgstorage.org:1024` (not `all.manager redirector.osgstorage.org+ 1213` directive as it is in case of configuring **origin**). 
+`StashCache-daemon` package provides default configuration file `/etc/xrootd/xrootd-stashcache-cache-server.cfg`. Example of the configuration of cache server is as follows:
 ```
 all.export  /
 set cachedir = /stash
@@ -112,24 +115,126 @@ xrootd.monitor all auth flush 30s window 5s fstat 60 lfn ops xfr 5 dest redir fs
 
 all.sitename Nebraska
 
+# Optional configuration
 # Remote debugging
 xrootd.diglib * /etc/xrootd/digauth.cf
 ```
 
-### Enabling authenticated cache
+#### Add AuthFile for non-authenticated cache
+```
+   [root@client ~]$ cat /etc/xrootd/Authfile-noauth 
+   u * /user/ligo -rl / rl
+```
+
+### Authenticated Cache server
+
+:heavy_exclamation_mark: Make sure you've installed `xrootd-lcmaps` and `globus-proxy-utils` packages during [install step here](install.md) included following pre-steps:
+* __Service certificate:__ create copy of the certificate to `/etc/grid-security/xrd/xrd{cert,key}.pem`
+   * set owner of the directory `/etc/grid-security/xrd/` to `xrootd:xrootd` user:
+      ```
+      $ chown -R xrootd:xrootd /etc/grid-security/xrd/
+      ```
+* __Network ports__: allow connections on port `8443 (TCP)` 
+
+Now, create symbolic link to existing configuration file with `-auth` postfix:
+```
+   [root@client ~]$ cd /etc/xrootd/
+   [root@client ~]$ ln -s xrootd-stashcache-cache-server.cfg xrootd-stashcache-cache-server-auth.cfg
+```
+
 #### RHEL7
 
-#### RHEL6
+On RHEL7 system, you need to configure in addition following systemd units:
+* `xrootd@stashcache-cache-server-auth.service`
+* `xrootd-renew-proxy.service`
 
-### Adjust disk utilization
-To adjust the disk utilization of your StashCache cache, modify the values of pfc.diskusage in /etc/xrootd/xrootd-stashcache-cache-server.cfg:
+##### Auth deamon and configuration
+Create the file with following content:
+```
+   [root@client ~]$ service xrootd@stashcache-cache-server-auth status
+```
+
+Reload deamons:
+```
+   [root@client ~]$ systemctl daemon-reload
+```
+
+##### Proxy configuration
+Create the file with following content:
+```
+   [root@client ~]$ cat /usr/lib/systemd/system/xrootd-renew-proxy.service
+   [Unit]
+   Description=Renew xrootd proxy
+
+   [Service]
+   User=xrootd
+   Group=xrootd
+   Type = oneshot
+   ExecStart = /bin/grid-proxy-init -cert /etc/grid-security/xrd/xrdcert.pem -key /etc/grid-security/xrd/xrdkey.pem -out /tmp/x509up_xrootd -valid 48:00
+
+   [Install]
+   WantedBy=multi-user.target
+```
+Reload deamons:
+```
+   [root@client ~]$ systemctl daemon-reload
+```
+Start proxy daemon:
+```
+   
+```
+
+##### Timer configuration
+Create the file with following content:
+```
+   [root@client ~]$ cat /usr/lib/systemd/system/xrootd-renew-proxy.timer
+   [Unit]
+   Description=Renew proxy every day at midnight
+   
+   [Timer]
+   OnCalendar=*-*-* 00:00:00
+   Unit=xrootd-renew-proxy.service
+   
+   [Install]
+   WantedBy=multi-user.target
+```
+
+Enable timer:
+```
+   [root@client ~]$ systemctl enable xrootd-renew-proxy.timer
+```
+
+Start and check if timer is active and working:
+```
+   [root@client ~]$ systemctl start xrootd-renew-proxy.timer
+   [root@client ~]$ systemctl is-active xrootd-renew-proxy.timer
+   [root@client ~]$ systemctl list-timers xrootd-renew-proxy*
+```
+
+##### Add Authfile for authenticated cache
+```
+   [root@client ~]$ cat /etc/xrootd/Authfile-auth 
+   g /osg/ligo /user/ligo r
+   u ligo /user/ligo lr / rl
+```
+
+#### RHEL6
+...to be added
+
+### Optional configuration
+
+#### Adjust disk utilization
+
+To adjust the disk utilization of your StashCache cache, modify the values of `pfc.diskusage` in `/etc/xrootd/xrootd-stashcache-cache-server.cfg`:
+
 ```
 pfc.diskusage 0.98 .99
 ```
+
 The first value and second values correspond to the low and high usage watermarks, respectively, in percentages. When the high watermark is reached, the XRootD service will automatically purge cache objects down to the low watermark.
 
-### Enable remote debugging
-This feature enables remote debugging via the digFS read-only file system
+#### Enable remote debugging
+This feature enables remote debugging via the `digFS` read-only file system
 ```
 xrootd.diglib * /etc/xrootd/digauth.cf
 ```
