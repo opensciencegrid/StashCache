@@ -13,17 +13,17 @@ To register a cache instance go [here](https://oim.grid.iu.edu/oim/resourceedit)
 ### Registering StashCache resource information: 
 * the site __must be__ _OSG-GOC_ 
 * the resource group __must be__ _Monitored Caches_
-[Image](../images/resource-info.png)
+![ResourceInfo](../images/resource-info.png)
 
 ### Registering StashCache resource services: 
 * the service __must be__ XRootD component
-[Image](../images/resource-services.png)
+![ResourceServices](../images/resource-services.png)
 
 !!! Note: Contact Information (will be pre-filled, add or modify as you see fit) - there are several types of contact, administrative and security are the most important to the GOC - __DO NOT__ check the WLCG resource box; Add a Update comment if you'd like.
 
 ### Confirming and submitting StashCache resource registration: 
 * you must click the __"Acceptable Use Policy"__ checkbox
-[Image](../images/resource-confirm.png)
+![FormConfirm](../images/resource-confirm.png)
 
 ## Configuring resource monitoring for RSV
 E.g. for the Indiana instance the status of the following command is checked: `xrdcp root://redirector.osgstorage.org//stash/user/test.1M /tmp/dump`
