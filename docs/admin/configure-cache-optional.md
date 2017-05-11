@@ -8,7 +8,7 @@ pfc.diskusage 0.98 .99
 The first value and second values correspond to the low and high usage watermarks, respectively, in percentages. When the high watermark is reached, the XRootD service will automatically purge cache objects down to the low watermark.
 
 ## Enable remote debugging
-This feature enables remote debugging via the `digFS` read-only file system
+This feature enables remote debugging via the `digFS` read-only file system, it's optional line in the [config file](../configs/xrootd-stashcache-cache-server.cfg):
 ```
 xrootd.diglib * /etc/xrootd/digauth.cf
 ```
