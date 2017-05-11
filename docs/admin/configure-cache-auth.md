@@ -110,7 +110,7 @@ It is very important to keep CRL list updated from cron:
 ...to be added
 
 ### Add Authfile for authenticated cache
-Authfile for authenticated cache may differ from `/etc/xrootd/Authfile-noauth` defined in [noauth configuration](configure-cache.md). Example:
+Authfile for authenticated cache may differ from `/etc/xrootd/Authfile-noauth` defined in [non-authenticated cache configuration](configure-cache.md). Example:
 ```
    [root@client ~]$ cat /etc/xrootd/Authfile-auth 
    g /osg/ligo /user/ligo r
