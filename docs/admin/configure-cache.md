@@ -104,6 +104,13 @@ In Authfile you want to allow local reads below `$(cachedir)` defined in the mai
    u * /user/ligo -rl / rl
 ```
 
+### Add Robots file
+```
+   [root@client ~]$ cat /etc/xrootd/stashcache-robots.txt 
+   User-agent: *
+   Disallow: /
+```
+
 ### RHEL7
 On RHEL7 system, you need to run following systemd unit:
 * `xrootd@stashcache-cache-server.service`
