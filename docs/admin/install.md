@@ -17,11 +17,10 @@ Before starting the installation process, consider the following mandatory point
     * the central collector on port `9619 (TCP)` 
     * XRootD service on port `1094 (TCP)`
     * and allow XRootD service over HTTP on port `8000 (TCP)`
-    * (optional) The authenticated stashcache server must listen to port `8443 (TCP)`
 * __Hardware requirements:__ We recommend that a StashCache server has at least 10Gbps connectivity, 1TB of disk space, and 8GB of RAM. 
     * More information about hardware and system configuration of existing caches you can find at [Upgrade status page](../ops/upgrades.md).
 
-If installing authenticated StashCache, you need to do in addition following:
+If installing the (optional) authenticated StashCache, you need to do in addition the following:
 
 * __Service certificate:__ create copy of the certificate to `/etc/grid-security/xrd/xrd{cert,key}.pem`
     * set owner of the directory `/etc/grid-security/xrd/` to `xrootd:xrootd` user:
