@@ -11,26 +11,27 @@ You can see the current state of affairs here:
 To register a cache instance go [here](https://oim.grid.iu.edu/oim/resourceedit) (with a cert in your browser). Fill in the required fields, example is displayed below:
 
 ### Registering StashCache resource information: 
-* the site __must be__ _OSG-GOC_ 
-* the resource group __must be__ _Monitored Caches_
+* The site __must be__ _OSG-GOC_ 
+* The resource group __must be__ _Monitored Caches_
 ![ResourceInfo](../images/resource-info.png)
 
 ### Registering StashCache resource services: 
-* the service __must be__ XRootD component
+* The service __must be__ XRootD component
 ![ResourceServices](../images/resource-services.png)
 
-!!! Note: Contact Information (will be pre-filled, add or modify as you see fit) - there are several types of contact, administrative and security are the most important to the GOC - __DO NOT__ check the WLCG resource box; Add a Update comment if you'd like.
+!!! Note: 
+    Contact Information (will be pre-filled, add or modify as you see fit) - there are several types of contact, administrative and security are the most important to the GOC - __DO NOT__ check the WLCG resource box; Add a Update comment if you'd like.
 
 ### Confirming and submitting StashCache resource registration: 
-* you must click the __"Acceptable Use Policy"__ checkbox
+* Tou must click the __"Acceptable Use Policy"__ checkbox
 ![FormConfirm](../images/resource-confirm.png)
 Hit the __blue__ submit button.
 
 ## Configuring resource monitoring for RSV
 E.g. for the Nebraska instance the status of the following command is checked: 
-```
-[user@client ~]$ xrdcp root://hcc-stash.unl.edu//stash/user/test.1M /tmp/dump
-```
+
+    [user@client ~]$ xrdcp root://hcc-stash.unl.edu//stash/user/test.1M /tmp/dump
+
 If the return status is zero, the cache is working, otherwise it is not. What we need from you is:
 * the equivalent `//stash/user/test.1M` a file you select that will always be there.
 
