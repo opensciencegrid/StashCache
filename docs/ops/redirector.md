@@ -69,3 +69,8 @@ XROOTD_SERVER_OPTIONS="-l /var/log/xrootd/xrootd.log -c /etc/xrootd/xrootd-clust
 CMSD_SERVER_OPTIONS="-l /var/log/xrootd/cmsd.log -c /etc/xrootd/xrootd-clustered-server.cfg -k fifo”
        XROOTD_INSTANCES="default server"
        CMSD_INSTANCES="default server”
+
+
+## Useful links
+https://twiki.opensciencegrid.org/bin/view/SoftwareTeam/SW023_StashCacheDetails
+https://twiki.opensciencegrid.org/bin/view/SoftwareTeam/SW023_XrootdAcrossOsg
