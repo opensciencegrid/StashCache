@@ -1,7 +1,9 @@
 #!/bin/sh -xe
 
-if [ "${TRAVIS_PULL_REQUEST}" = "false" ]; then
+if [ "${TRAVIS_PULL_REQUEST}" = "false" ] && [ -z ${encrypted_e92dfea3fdc7_key+x} ]; then
 
+  # Check if the environment variables are set
+  if [ -z ${var+x} ]; then
   openssl aes-256-cbc -K $encrypted_e92dfea3fdc7_key -iv $encrypted_e92dfea3fdc7_iv -in deploy-key.enc -out deploy-key -d
   chmod 600 deploy-key
   eval `ssh-agent -s`
