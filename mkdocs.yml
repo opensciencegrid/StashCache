@@ -15,6 +15,8 @@ pages:
 - Operations:
   - 'ops/register.md'
   - 'ops/start.md'
+  - 'ops/troubleshoot.md'
+  - 'ops/redirector.md'
   - 'ops/upgrades.md'
 
 markdown_extensions:
