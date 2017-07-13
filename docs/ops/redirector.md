@@ -5,7 +5,7 @@ Use these instructions to install an XRootD StashCache Federation Redirector. Th
 ## Redirector server recommendations
 The service is very lightweight depending on number of subscribers (caching proxies), though. Recommended would be use machine with 4GB of RAM and 2 cores. Load avg is practically close to zero, therefore 2 cores is sufficient with as much RAM as you can reasonably ask for.  As far as disk goes, something reasonable like 500GB of local storage is good enough, and best if the server has a 10 Gbps NIC at least.
 
-You must have ==port== `1094` and `1213` open to all traffic; otherwise the redirector will not work.
+You must have __port__ `1094` and `1213` open to all traffic; otherwise the redirector will not work.
 In addition (this is optional), we run separate xrootd server instance on redirector host for RSV tests which needs open port `2094`.
 
 ## Installation using yum
@@ -78,7 +78,7 @@ For the RSV test purpose make sure the testing file is present on the file syste
 4. Set the service start when machine is rebooted: `chkconfig --level 2345 {xrootd,cmsd} on`
 
 5. Test that your instance works as expected, ideally would be setup origin server and subscribe into this redirector. Then, see the log files if origin server joined the Federation. Now, configure `/etc/sysconfig/xrootd`.
-Assuming host runs both ==server and redirector== and the two configurations above are applied, make sure properly edit /etc/sysconfig/xrootd and add/edit these lines:
+Assuming host runs both __server and redirector__ and the two configurations above are applied, make sure properly edit /etc/sysconfig/xrootd and add/edit these lines:
 ```
        XROOTD_DEFAULT_OPTIONS="-l /var/log/xrootd/xrootd.log -c /etc/xrootd/xrootd-clustered.cfg -k fifo"
        CMSD_DEFAULT_OPTIONS="-l /var/log/xrootd/cmsd.log -c /etc/xrootd/xrootd-clustered.cfg -k fifo”
