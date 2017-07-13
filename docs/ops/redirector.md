@@ -78,7 +78,7 @@ For the RSV test purpose make sure the testing file is present on the file syste
 4. Set the service start when machine is rebooted: `chkconfig --level 2345 {xrootd,cmsd} on`
 
 5. Test that your instance works as expected, ideally would be setup origin server and subscribe into this redirector. Then, see the log files if origin server joined the Federation. Now, configure `/etc/sysconfig/xrootd`.
-Assuming host runs both __server and redirector__ and the two configurations above are applied, make sure properly edit /etc/sysconfig/xrootd and add/edit these lines:
+Assuming host runs both __server and redirector__ and the two configurations above are applied, make sure properly edit `/etc/sysconfig/xrootd` and add/modify these lines:
 ```
        XROOTD_DEFAULT_OPTIONS="-l /var/log/xrootd/xrootd.log -c /etc/xrootd/xrootd-clustered.cfg -k fifo"
        CMSD_DEFAULT_OPTIONS="-l /var/log/xrootd/cmsd.log -c /etc/xrootd/xrootd-clustered.cfg -k fifo”
