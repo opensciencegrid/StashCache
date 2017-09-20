@@ -32,7 +32,20 @@ def doWriteBack(source, destination):
     
     # Get the scitoken content
     if 'KRB5CCNAME' in os.environ:
-        scitoken_file = os.environ['KRB5CCNAME']
+        # First, try to split the environment variable:
+        # Format: KRB5CCNAME=FILE:/var/lib/condor/execute/dir_24688/nobody.cc
+        if ':' in os.environ['KRB5CCNAME']:
+            # Try splitting
+            scitoken_file = os.environ['KRB5CCNAME'].split(':', 1)
+            if not os.path.exists(scitoken_file):
+                scitoken_file = None
+        if scitoken_file == None:
+            # Splitting failed, now try just looking at the os.environ:
+            scitoken_file = os.environ['KRB5CCNAME']
+            if not os.path.exists(scitoken_file):
+                scitoken_file = None
+                logging.error("Unable to find SciToken file, environment variable KRB5CCNAME=%s, but file not found" % (os.environ['KRB5CCNAME']))
+                return 1
     else:
         logging.error("Unable to find SciToken file, environment variable \"KRB5CCNAME\" not found.")
         return 1
