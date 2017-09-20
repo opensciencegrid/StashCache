@@ -17,10 +17,40 @@ from urlparse import urlparse
 
 main_redirector = "root://redirector.osgstorage.org"
 stash_origin = "root://stash.osgconnect.net"
+writeback_host = "http://stash-xrd.osgconnect.net:1094"
 
 TIMEOUT = 300
 DIFF = TIMEOUT * 10
 
+def doWriteBack(source, destination):
+    """
+    Do a write back to Stash using SciTokens
+    
+    :param str source: The location of the local file
+    :param str destination: The location of the remote file
+    """
+    
+    # Get the scitoken content
+    if 'KRB5CCNAME' in os.environ:
+        scitoken_file = os.environ['KRB5CCNAME']
+    else:
+        logging.error("Unable to find SciToken file, environment variable \"KRB5CCNAME\" not found.")
+        return 1
+    
+    with open(scitoken_file, 'r') as scitoken_obj:
+        scitoken_contents = scitoken_obj.read().strip()
+    
+    command = "curl -X PUT --fail --upload-file %s -H \"Authorization: Bearer %s\" %s%s" % (source, scitoken_contents, writeback_host, destination)
+    print command
+    
+    curl=subprocess.Popen([command ],shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+    (stdout, stderr) = curl.communicate()
+    curl_exit=curl.returncode
+    if curl_exit != 0:
+        print stdout
+        print stderr
+    return curl_exit
+    
 
 def doStashCpSingle(sourceFile, destination, cache, debug=False):
 
@@ -38,8 +68,13 @@ def doStashCpSingle(sourceFile, destination, cache, debug=False):
     payload['sitename'] = sitename
     payload.update(parse_job_ad())
     
+    # Check if this is a source 
+    if os.path.exists(sourceFile):
+        # Source file exists, must be a writeback
+        return doWriteBack(sourceFile, destination)
+    
     # Calculate the starting time
-    start1 = int(time.time()*1000)
+    start1 = int(time.time()*1000)    
     
     # First, check if the file is available in CVMFS
     # Really, we don't need to check for close caches before this, but oh well
@@ -371,9 +406,9 @@ def main():
     else:
         cache = get_best_stashcache()
     
-    if not source.startswith('/'):
-        logging.warning("DEPRECIATED: The source path does not begin with a '/', but it is required.  This functionality will be removed in an upcoming release")
-        source = "/" + source
+    #if not source.startswith('/'):
+    #    logging.warning("DEPRECIATED: The source path does not begin with a '/', but it is required.  This functionality will be removed in an upcoming release")
+    #    source = "/" + source
     
     
     if not args.recursive:
