@@ -74,7 +74,7 @@ def doStashCpSingle(sourceFile, destination, cache, debug=False):
         return doWriteBack(sourceFile, destination)
     
     # Calculate the starting time
-    start1 = int(time.time()*1000)    
+    start1 = int(time.time()*1000)
     
     # First, check if the file is available in CVMFS
     # Really, we don't need to check for close caches before this, but oh well
@@ -405,10 +405,6 @@ def main():
         cache = args.cache
     else:
         cache = get_best_stashcache()
-    
-    #if not source.startswith('/'):
-    #    logging.warning("DEPRECIATED: The source path does not begin with a '/', but it is required.  This functionality will be removed in an upcoming release")
-    #    source = "/" + source
     
     
     if not args.recursive:
