@@ -15,7 +15,7 @@ rpm -Uvh https://dl.fedoraproject.org/pub/epel/epel-release-latest-${OS_VERSION}
 yum -y install yum-plugin-priorities
 rpm -Uvh https://repo.grid.iu.edu/osg/3.3/osg-3.3-el${OS_VERSION}-release-latest.rpm
 
-yum -y install osg-oasis pylint
+yum -y install osg-oasis 
 
 echo "user_allow_other" >> /etc/fuse.conf
 
@@ -35,7 +35,7 @@ set -e
 module load xrootd
 
 # For now, disable pylint failures
-pylint /StashCache/bin/stashcp || /bin/true
+#pylint /StashCache/bin/stashcp || /bin/true
 
 # Copy in the .job.ad file:
 cp /StashCache/bin/stashcp2/tests/job.ad ./.job.ad
