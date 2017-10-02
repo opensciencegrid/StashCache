@@ -8,9 +8,9 @@ Common settings on the system:
 
 First you need to activate xrootd to create core file when process exits unexpectedly:
 
-* set env variable upon cmsd/xrootd start `DAEMON_COREFILE_LIMIT="unlimited"`
-    RHEL6: env set in `/etc/sysconfig/xrootd`
-    RHEL7: you can use `/etc/sysconfig/xrootd` but prepare override file `/etc/systemd/system/cmsd@clustered.service.d/override.conf` with content:
+* set environment variable upon cmsd/xrootd start `DAEMON_COREFILE_LIMIT="unlimited"`
+  * RHEL6: variable set in `/etc/sysconfig/xrootd` or set as root `ulimit -c unlimited`
+  * RHEL7: you can use `/etc/sysconfig/xrootd` but prepare override file `/etc/systemd/system/cmsd@clustered.service.d/override.conf` with content:
 ```
      [Service]
      EnvironmentFile=-/etc/sysconfig/xrootd
@@ -27,3 +27,6 @@ $ gdb --pid=PID_NR
 ```
 `$ gcore $(pidof xrootd)`
 ```
+
+### Core from not running process:
+* by default, XRootD should leave `core file` in the `/var/spool/xrootd/` when it crashes

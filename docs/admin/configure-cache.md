@@ -113,13 +113,12 @@ In Authfile you want to allow local reads below `$(cachedir)` defined in the mai
 
 ### RHEL7
 On RHEL7 system, you need to run following systemd unit:
+
 * `systemctl start xrootd@stashcache-cache-server.service`
+
 * `systemctl start condor.service`
 
 Please, refer to [start services document](../ops/start.md) for more information.
-
-### RHEL6
-...to be added, old doc for RHEL6 configuration resides temporarily [here](https://twiki.grid.iu.edu/bin/view/Documentation/Release3/InstallStashCache).
 
 When ready with configuration, please [register](../ops/register.md) and [start](../ops/start.md) your StashCache Cache server.
 If you'd like to configure in addition authenticated cache instance, please follow [this](configure-cache-auth.md) document.
