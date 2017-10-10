@@ -5,7 +5,7 @@ Packages installed: `stashcache-daemon fetch-crl stashcache-cache-server`
 The following section describes required configuration to have a functional non-authenticated StashCache Cache (not origin server!). StashCache Cache package `stashcache-cache-server` needs to be manually configured from pre-existing XRootD configuration.
 
 ## Cache server
-!!! Note: 
+!!! note
     While example of the configuration file below provides combination of _authenticated_ and _non-authenticated_ _Cache_, the non-authenticated cache is considered to be default and authenticated cache just optional (additional) service. If you're about to configure in addition _authenticated cache_ read to the end of this document and then follow post-installation of [authenticated part here](configure-cache-auth.md).
 
 For configuring **cache** one needs to define directive `pss.origin redirector.osgstorage.org:1024` (not `all.manager redirector.osgstorage.org+ 1213` directive as it is in case of [configuring origin](configure-origin.md)). 
