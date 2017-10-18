@@ -29,25 +29,45 @@ def doWriteBack(source, destination):
     :param str source: The location of the local file
     :param str destination: The location of the remote file
     """
+    start1 = int(time.time()*1000)
     
-    # Get the scitoken content
-    if 'KRB5CCNAME' in os.environ:
+     # Get the scitoken content
+    scitoken_file = None
+    if 'AUTHTOKEN' in os.environ:
         # First, try to split the environment variable:
-        # Format: KRB5CCNAME=FILE:/var/lib/condor/execute/dir_24688/nobody.cc
-        if ':' in os.environ['KRB5CCNAME']:
+        # Format: AUTHTOKEN=FILE:/var/lib/condor/execute/dir_24688/nobody.cc
+        if ':' in os.environ['AUTHTOKEN']:
             # Try splitting
-            scitoken_file = os.environ['KRB5CCNAME'].split(':', 1)
+            scitoken_file = os.environ['AUTHTOKEN'].split(':', 1)[1]
             if not os.path.exists(scitoken_file):
+                logging.error("Unable to find file %s" % scitoken_file)
                 scitoken_file = None
         if scitoken_file == None:
             # Splitting failed, now try just looking at the os.environ:
-            scitoken_file = os.environ['KRB5CCNAME']
+            scitoken_file = os.environ['AUTHTOKEN']
             if not os.path.exists(scitoken_file):
                 scitoken_file = None
-                logging.error("Unable to find SciToken file, environment variable KRB5CCNAME=%s, but file not found" % (os.environ['KRB5CCNAME']))
+                logging.error("Unable to find SciToken file, environment variable AUTHTOKEN=%s, but file not found" % (os.environ['AUTHTOKEN']))
+        if scitoken_file == None:
+            try:
+                if os.path.exists("%s.cc" % (os.getlogin())):
+                    scitokens_file = "%s.cc" % (os.getlogin())
+                else:
+                    logging.error("Unable to find scitokens in the current directory")
+            except OSError as ose:
+                logging.error("OS error when trying to get login information, possibly running in stashcp.  Moving on to globbing for *.cc file")
+        if scitoken_file == None:
+            # Look for the cc file with glob
+            import glob
+            results = glob.glob("*.cc")
+            if len(results) > 0:
+                scitoken_file = results[0]
+            else:
+                logging.error("Unable to find scitokens file with glob")
                 return 1
+
     else:
-        logging.error("Unable to find SciToken file, environment variable \"KRB5CCNAME\" not found.")
+        logging.error("Unable to find SciToken file, environment variable \"AUTHTOKEN\" not found.")
         return 1
     
     with open(scitoken_file, 'r') as scitoken_obj:
@@ -60,8 +80,24 @@ def doWriteBack(source, destination):
     (stdout, stderr) = curl.communicate()
     curl_exit=curl.returncode
     if curl_exit != 0:
-        print stdout
-        print stderr
+        logging.error(stdout)
+        logging.error(stderr)
+        
+    # Send the payload
+    payload = {
+        'filename': source,
+        'sitename': sitename,
+        'timestamp': end1,
+        'host': writeback_host,
+        'upload_size': os.stat(source).st_size,
+        'status': 'Success',
+        'tries': 1,
+        'start1': start1,
+        'end1': end1,
+        'cache': 'None',
+        'writeback': 'True'
+    }
+    es_send(payload)
     return curl_exit
     
 
