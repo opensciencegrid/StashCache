@@ -6,7 +6,7 @@ This page is used to track the status of hardware and software used for the Stas
 
 | **Hosting site** | **Hostname** | **XRootD version** | **OS** | **CPU** | **RAM** | **Disk (cache) space** | **Disk configuration** | **Connectivity** | **Notes** | **Last update** |
 |------------------|--------------|--------------------|--------|---------|---------|------------------------|------------------------|------------------|-----------|-----------------|
-| Syracuse | its-condor-xrootd1.syr.edu |   |   |   |   |   |   |   |   |   |
+| Syracuse | its-condor-xrootd1.syr.edu | xrootd-server-4.7.0-1.osg33.el7.x86_64 | CentOS 7.2.1511   | Intel(R) Xeon(R) CPU E5-2699 v3 @ 2.30GHz (8 cores) | 65GB  | 16TB  |   | 10Gbps |   | 11-03-2017  |
 | BNL | osgxroot.usatlas.bnl.gov |   |   |   |   |   |   |   |   |   |
 | FZU | novastore.farm.particle.cz | 4.4.0 |   | 2x Xeon(R) E5-2630 @2.30GHz  | 32GB  | 30TB  | 12x3TB, RAID6, XFS  | 10Gbps  |   | 10-28-2016  |
 | Nebraska | hcc-stash.unl.edu | 4.6.1-0.2.pre3.hcc  | CentOS 7.2.1511  | 2x Xeon (R) E5530 @2.4GHz w/HT (8 real cores)  | 24GB  | 19TB  | 12x 2TB SATA in RAID6, XFS | 10Gbps  |   | 04-06-2017 |
