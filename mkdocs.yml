@@ -3,6 +3,9 @@ site_url: https://opensciencegrid.github.io/stashcache
 repo_url: https://github.com/opensciencegrid/stashcache
 theme: readthedocs
 
+extra_css:
+  - css/extra.css
+
 pages:
 - Home: 'index.md'
 - Install: 'admin/install.md'
