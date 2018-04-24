@@ -31,10 +31,10 @@ If installing the (optional) authenticated StashCache, you need to do in additio
 
 As with all OSG software installations, there are some one-time steps to prepare in advance:
 
-* Ensure the host has [a supported operating system](https://twiki.grid.iu.edu/bin/view/Documentation/Release3/SupportedOperatingSystems)
+* Ensure the host has [a supported operating system](https://opensciencegrid.github.io/docs/release/supported_platforms/)
 * Obtain root access to the host
-* Prepare [the required Yum repositories](https://twiki.grid.iu.edu/bin/view/Documentation/Release3/YumRepositories)
-* Install [CA certificates](https://twiki.grid.iu.edu/bin/view/Documentation/Release3/InstallCertAuth)
+* Prepare [the required Yum repositories](http://opensciencegrid.github.io/docs/common/yum/)
+* Install [CA certificates](https://opensciencegrid.github.io/docs/common/ca/)
 
 ## Installing the StashCache metapackage
 
