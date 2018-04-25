@@ -33,48 +33,28 @@ def doWriteBack(source, destination):
     
      # Get the scitoken content
     scitoken_file = None
-    if 'AUTHTOKEN' in os.environ:
-        # First, try to split the environment variable:
-        # Format: AUTHTOKEN=FILE:/var/lib/condor/execute/dir_24688/nobody.cc
-        if ':' in os.environ['AUTHTOKEN']:
-            # Try splitting
-            scitoken_file = os.environ['AUTHTOKEN'].split(':', 1)[1]
-            if not os.path.exists(scitoken_file):
-                logging.error("Unable to find file %s" % scitoken_file)
-                scitoken_file = None
-        if scitoken_file == None:
-            # Splitting failed, now try just looking at the os.environ:
-            scitoken_file = os.environ['AUTHTOKEN']
-            if not os.path.exists(scitoken_file):
-                scitoken_file = None
-                logging.error("Unable to find SciToken file, environment variable AUTHTOKEN=%s, but file not found" % (os.environ['AUTHTOKEN']))
-        if scitoken_file == None:
-            try:
-                if os.path.exists("%s.cc" % (os.getlogin())):
-                    scitokens_file = "%s.cc" % (os.getlogin())
-                else:
-                    logging.error("Unable to find scitokens in the current directory")
-            except OSError as ose:
-                logging.error("OS error when trying to get login information, possibly running in stashcp.  Moving on to globbing for *.cc file")
-        if scitoken_file == None:
-            # Look for the cc file with glob
-            import glob
-            results = glob.glob("*.cc")
-            if len(results) > 0:
-                scitoken_file = results[0]
-            else:
-                logging.error("Unable to find scitokens file with glob")
-                return 1
-
-    else:
-        logging.error("Unable to find SciToken file, environment variable \"AUTHTOKEN\" not found.")
+    if '_CONDOR_CREDS' in os.environ:
+        # First, look for the scitokens.use file
+        # Format: _CONDOR_CREDS=/var/lib/condor/execute/dir_908/.condor_creds
+        scitoken_file = os.path.join(os.environ['_CONDOR_CREDS'], 'scitokens.use')
+        if not os.path.exists(scitoken_file):
+            scitoken_file = None
+    
+    if not scitoken_file and os.path.exists(".condor_creds/scitokens.use"):
+        scitoken_file = ".condor_creds/scitokens.use"
+    
+    if not scitoken_file:
+        logging.error("Unable to find scitokens.use file")
         return 1
+
     
     with open(scitoken_file, 'r') as scitoken_obj:
         scitoken_contents = scitoken_obj.read().strip()
     
     command = "curl -X PUT --fail --upload-file %s -H \"Authorization: Bearer %s\" %s%s" % (source, scitoken_contents, writeback_host, destination)
-    print command
+
+    if 'http_proxy' in os.environ:
+        del os.environ['http_proxy']
     
     curl=subprocess.Popen([command ],shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
     (stdout, stderr) = curl.communicate()
@@ -83,6 +63,8 @@ def doWriteBack(source, destination):
         logging.error(stdout)
         logging.error(stderr)
         
+    sitename = os.environ.setdefault("OSG_SITE_NAME", "siteNotFound")
+    end1=int(time.time()*1000)
     # Send the payload
     payload = {
         'filename': source,
