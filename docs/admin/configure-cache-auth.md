@@ -119,9 +119,6 @@ It is very important to keep CRL list updated from cron:
         [root@client ~]$ systemctl daemon-reload
 
 
-### RHEL6
-...to be added
-
 ### Add Authfile for authenticated cache
 Authfile for authenticated cache may differ from `/etc/xrootd/Authfile-noauth` defined in [non-authenticated cache configuration](configure-cache.md). Example:
 ```
