@@ -79,6 +79,10 @@ def doWriteBack(source, destination):
         'cache': 'None',
         'writeback': 'True'
     }
+
+    if curl_exit != 0:
+        payload['status'] = "Failure"
+
     es_send(payload)
     return curl_exit
     
