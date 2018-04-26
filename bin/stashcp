@@ -52,7 +52,7 @@ def doWriteBack(source, destination):
         scitoken_contents = scitoken_obj.read().strip()
 
     # Remove the stash:// at the beginning, don't need it
-    destination = destination.replace("stash://")
+    destination = destination.replace("stash://", "")
     
     command = "curl -X PUT --fail --upload-file %s -H \"Authorization: Bearer %s\" %s%s" % (source, scitoken_contents, writeback_host, destination)
 
