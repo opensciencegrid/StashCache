@@ -27,7 +27,7 @@ def doWriteBack(source, destination):
     Do a write back to Stash using SciTokens
     
     :param str source: The location of the local file
-    :param str destination: The location of the remote file
+    :param str destination: The location of the remote file, in stash:// format
     """
     start1 = int(time.time()*1000)
     
@@ -50,6 +50,9 @@ def doWriteBack(source, destination):
     
     with open(scitoken_file, 'r') as scitoken_obj:
         scitoken_contents = scitoken_obj.read().strip()
+
+    # Remove the stash:// at the beginning, don't need it
+    destination = destination.replace("stash://")
     
     command = "curl -X PUT --fail --upload-file %s -H \"Authorization: Bearer %s\" %s%s" % (source, scitoken_contents, writeback_host, destination)
 
@@ -103,8 +106,8 @@ def doStashCpSingle(sourceFile, destination, cache, debug=False):
     payload['sitename'] = sitename
     payload.update(parse_job_ad())
     
-    # Check if this is a source 
-    if os.path.exists(sourceFile):
+    # Check if the desitnation is a protocol like stash:///user/blah
+    if destination.startswith("stash://"):
         # Source file exists, must be a writeback
         return doWriteBack(sourceFile, destination)
     
@@ -143,7 +146,7 @@ def doStashCpSingle(sourceFile, destination, cache, debug=False):
                 
             return 0
             
-        except IOError, e:
+        except IOError as e:
             logging.error("Unable to copy with CVMFS, even though file exists: %s", str(e))
     
     else:
