@@ -82,6 +82,8 @@ def doWriteBack(source, destination):
         'cache': 'None',
         'writeback': 'True'
     }
+    
+    payload.update(parse_job_ad())
 
     if curl_exit != 0:
         payload['status'] = "Failure"
