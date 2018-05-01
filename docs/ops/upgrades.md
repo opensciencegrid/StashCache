@@ -7,7 +7,7 @@ This page is used to track the status of hardware and software used for the Stas
 
 | **Hosting site** | **Hostname** | **XRootD version** | **OS** | **CPU** | **RAM** | **Disk (cache) space** | **Disk configuration** | **Connectivity** | **Notes** | **Last update** |
 |------------------|--------------|--------------------|--------|---------|---------|------------------------|------------------------|------------------|-----------|-----------------|
-| Syracuse | its-condor-xrootd1.syr.edu | xrootd-server-4.7.0-1.osg33.el7.x86_64 | CentOS 7.2.1511   | Intel(R) Xeon(R) CPU E5-2699 v3 @ 2.30GHz (8 cores) | 65GB  | 16TB  |   | 10Gbps |   | 11-03-2017  |
+| Syracuse | its-condor-xrootd1.syr.edu | xrootd-4.8.2-0.1.rc1.osg34.el7.x86_64 | CentOS 7.2.1511   | Intel(R) Xeon(R) CPU E7-8890 v4 @ 2.20GHz (8 cores) | 65GB  | 16TB  |   | 10Gbps |   | 05-01-2018  |
 | BNL | osgxroot.usatlas.bnl.gov |   |   |   |   |   |   |   |   |   |
 | FZU | stash.farm.particle.cz | 4.8.0-1.osg34 | CentOS 7.4.1708 | 2x Xeon(R) E5-2630 v4 @2.20GHz  | 128GB  | 30TB  | 5x8TB, RAID-Z1, ZFS, 1TB NVMe Cache | 10Gbps | Container | 2-2-2018  |
 | Nebraska | hcc-stash.unl.edu | 4.8.2-1.osg34  | CentOS 7.4.1708  | 2x (8 core) Intel(R) Xeon(R) Gold 6134 CPU @ 3.20GHz | 394GB | ~1.5TB | NVMe | 40Gbps  |  | 05-01-2018 |
