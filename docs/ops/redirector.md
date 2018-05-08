@@ -28,7 +28,7 @@ all.export /stash/
 #Production Redirector DNS alias
 all.manager redirector.osgstorage.org+ 1213
 #ITB Redirector DNS alias
-#all.manager stash-itb.grid.iu.edu+ 1213
+#all.manager stash-itb.osgstorage.org+ 1213
 
 For the RSV test purpose make sure the testing file is present on the file system:
 /stash/user/test.1M
@@ -59,7 +59,7 @@ For the RSV test purpose make sure the testing file is present on the file syste
      all.sitename GOC-StashCache-Redirector 
 
      #ITB Redirector DNS alias
-     #all.manager meta all stash-itb.grid.iu.edu+ 1213
+     #all.manager meta all stash-itb.osgstorage.org+ 1213
      #all.sitename GOC-StashCache-ITB-Redirector
      # XRootD Stats - sends UDP packets
      xrd.report uct2-collectd.mwt2.org:9931
@@ -95,10 +95,9 @@ If you don't choose server instance setup for RSV tests you can skip lines XROOT
 There is command `xrdmapc` in the xrootd-server packages that you can use to check what Origins subscribe to your redirector:
 ```
 $ xrdmapc --list all redirector.osgstorage.org:1094 
-0**** redirector.grid.iu.edu:1094
-      Srv redirector1.grid.iu.edu:2094
+0**** redirector.osgstorage.org:1094
+      Srv redirector1.osgstorage.org:2094
       Srv csiu.grid.iu.edu:1094
-      Srv redirector2.grid.iu.edu:2094
       Srv stashcache.fnal.gov:1094
       Srv ceph-gridftp1.grid.uchicago.edu:1094
       Srv stash.osgconnect.net:1094

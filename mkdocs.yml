@@ -1,5 +1,5 @@
 site_name: StashCache Documentation
-site_url: https://opensciencegrid.github.io/stashcache
+site_url: https://opensciencegrid.org/stashcache
 repo_url: https://github.com/opensciencegrid/stashcache
 theme: readthedocs
 
