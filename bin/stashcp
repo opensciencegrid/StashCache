@@ -64,11 +64,13 @@ def doWriteBack(source, destination):
     if 'http_proxy' in os.environ:
         del os.environ['http_proxy']
     
+    logging.debug("curl command: %s" % command)
     curl=subprocess.Popen([command ],shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
     (stdout, stderr) = curl.communicate()
     curl_exit=curl.returncode
     if statinfo.st_size == 0 and curl_exit == 28:
         logging.debug("Got curl exit code 28, but that's ok for zero-length files.  This doesn't capture connection timeouts")
+        curl_exit = 0
     elif curl_exit != 0:
         logging.error(stdout)
         logging.error(stderr)
