@@ -54,7 +54,12 @@ def doWriteBack(source, destination):
     # Remove the stash:// at the beginning, don't need it
     destination = destination.replace("stash://", "")
     
-    command = "curl -X PUT --fail --upload-file %s -H \"Authorization: Bearer %s\" %s%s" % (source, scitoken_contents, writeback_host, destination)
+    # Check if the source file is zero-length
+    statinfo = os.stat(source)
+    if statinfo.st_size == 0:
+        command = "curl -v --connect-timeout 30 --speed-time 5 --speed-limit 1024 -X PUT --fail --upload-file %s -H \"Authorization: Bearer %s\" %s%s" % (source, scitoken_contents, writeback_host, destination)
+    else:
+        command = "curl -v --connect-timeout 30 --speed-limit 1024 -X PUT --fail --upload-file %s -H \"Authorization: Bearer %s\" %s%s" % (source, scitoken_contents, writeback_host, destination)
 
     if 'http_proxy' in os.environ:
         del os.environ['http_proxy']
@@ -62,7 +67,9 @@ def doWriteBack(source, destination):
     curl=subprocess.Popen([command ],shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
     (stdout, stderr) = curl.communicate()
     curl_exit=curl.returncode
-    if curl_exit != 0:
+    if statinfo.st_size == 0 and curl_exit == 28:
+        logging.debug("Got curl exit code 28, but that's ok for zero-length files.  This doesn't capture connection timeouts")
+    elif curl_exit != 0:
         logging.error(stdout)
         logging.error(stderr)
         
