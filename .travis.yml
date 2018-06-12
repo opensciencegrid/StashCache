@@ -24,6 +24,7 @@ before_script:
 - pip install mkdocs
 - pip install MarkdownHighlight
 - pip install markdown-include
+- pip install mkdocs-material
 
 services:
  - docker
