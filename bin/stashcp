@@ -17,14 +17,100 @@ from urlparse import urlparse
 
 main_redirector = "root://redirector.osgstorage.org"
 stash_origin = "root://stash.osgconnect.net"
+writeback_host = "http://stash-xrd.osgconnect.net:1094"
 
 TIMEOUT = 300
 DIFF = TIMEOUT * 10
 
+def doWriteBack(source, destination):
+    """
+    Do a write back to Stash using SciTokens
+    
+    :param str source: The location of the local file
+    :param str destination: The location of the remote file, in stash:// format
+    """
+    start1 = int(time.time()*1000)
+    
+     # Get the scitoken content
+    scitoken_file = None
+    if '_CONDOR_CREDS' in os.environ:
+        # First, look for the scitokens.use file
+        # Format: _CONDOR_CREDS=/var/lib/condor/execute/dir_908/.condor_creds
+        scitoken_file = os.path.join(os.environ['_CONDOR_CREDS'], 'scitokens.use')
+        if not os.path.exists(scitoken_file):
+            scitoken_file = None
+    
+    if not scitoken_file and os.path.exists(".condor_creds/scitokens.use"):
+        scitoken_file = ".condor_creds/scitokens.use"
+    
+    if not scitoken_file:
+        logging.error("Unable to find scitokens.use file")
+        return 1
+
+    
+    with open(scitoken_file, 'r') as scitoken_obj:
+        scitoken_contents = scitoken_obj.read().strip()
+
+    # Remove the stash:// at the beginning, don't need it
+    destination = destination.replace("stash://", "")
+    
+    # Check if the source file is zero-length
+    statinfo = os.stat(source)
+    if statinfo.st_size == 0:
+        command = "curl -v --connect-timeout 30 --speed-time 5 --speed-limit 1024 -X PUT --fail --upload-file %s -H \"Authorization: Bearer %s\" %s%s" % (source, scitoken_contents, writeback_host, destination)
+    else:
+        command = "curl -v --connect-timeout 30 --speed-limit 1024 -X PUT --fail --upload-file %s -H \"Authorization: Bearer %s\" %s%s" % (source, scitoken_contents, writeback_host, destination)
+
+    if 'http_proxy' in os.environ:
+        del os.environ['http_proxy']
+    
+    logging.debug("curl command: %s" % command)
+    curl=subprocess.Popen([command ],shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+    (stdout, stderr) = curl.communicate()
+    curl_exit=curl.returncode
+    if statinfo.st_size == 0 and curl_exit == 28:
+        logging.debug("Got curl exit code 28, but that's ok for zero-length files.  This doesn't capture connection timeouts")
+        curl_exit = 0
+    elif curl_exit != 0:
+        logging.error(stdout)
+        logging.error(stderr)
+        
+    sitename = os.environ.setdefault("OSG_SITE_NAME", "siteNotFound")
+    end1=int(time.time()*1000)
+    # Send the payload
+    payload = {
+        'filename': source,
+        'sitename': sitename,
+        'timestamp': end1,
+        'host': writeback_host,
+        'upload_size': os.stat(source).st_size,
+        'status': 'Success',
+        'tries': 1,
+        'start1': start1,
+        'end1': end1,
+        'cache': 'None',
+        'writeback': 'True'
+    }
+    
+    payload.update(parse_job_ad())
+
+    if curl_exit != 0:
+        payload['status'] = "Failure"
+
+    es_send(payload)
+    return curl_exit
+    
 
 def doStashCpSingle(sourceFile, destination, cache, debug=False):
 
-    #cache=get_best_stashcache()
+
+    # Check if the desitnation is a protocol like stash:///user/blah
+    if destination.startswith("stash://"):
+        # Source file exists, must be a writeback
+        return doWriteBack(sourceFile, destination)
+
+    if not cache:
+        cache = get_best_stashcache()
     logging.debug("Using Cache %s", cache)
     
     sitename = os.environ.setdefault("OSG_SITE_NAME", "siteNotFound")
@@ -37,7 +123,8 @@ def doStashCpSingle(sourceFile, destination, cache, debug=False):
     payload['filename'] = sourceFile
     payload['sitename'] = sitename
     payload.update(parse_job_ad())
-    
+
+
     # Calculate the starting time
     start1 = int(time.time()*1000)
     
@@ -73,7 +160,7 @@ def doStashCpSingle(sourceFile, destination, cache, debug=False):
                 
             return 0
             
-        except IOError, e:
+        except IOError as e:
             logging.error("Unable to copy with CVMFS, even though file exists: %s", str(e))
     
     else:
@@ -364,18 +451,11 @@ def main():
         source=opts[0]
         destination=opts[1]
 
-
+    cache = None
     # Check for manually entered cache to use
     if args.cache and len(args.cache) > 0:
         cache = args.cache
-    else:
-        cache = get_best_stashcache()
-    
-    if not source.startswith('/'):
-        logging.warning("DEPRECIATED: The source path does not begin with a '/', but it is required.  This functionality will be removed in an upcoming release")
-        source = "/" + source
-    
-    
+
     if not args.recursive:
         result = doStashCpSingle(sourceFile=source, destination=destination, cache=cache, debug=args.debug)
     else:

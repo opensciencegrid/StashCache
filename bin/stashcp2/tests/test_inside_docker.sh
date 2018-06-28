@@ -13,7 +13,7 @@ yum -y clean expire-cache
 rpm -Uvh https://dl.fedoraproject.org/pub/epel/epel-release-latest-${OS_VERSION}.noarch.rpm
 
 yum -y install yum-plugin-priorities
-rpm -Uvh https://repo.grid.iu.edu/osg/3.3/osg-3.3-el${OS_VERSION}-release-latest.rpm
+rpm -Uvh https://repo.opensciencegrid.org/osg/3.3/osg-3.3-el${OS_VERSION}-release-latest.rpm
 
 yum -y install osg-oasis 
 
