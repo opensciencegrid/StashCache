@@ -103,7 +103,14 @@ def doWriteBack(source, destination):
 
 def doStashCpSingle(sourceFile, destination, cache, debug=False):
 
-    #cache=get_best_stashcache()
+
+    # Check if the desitnation is a protocol like stash:///user/blah
+    if destination.startswith("stash://"):
+        # Source file exists, must be a writeback
+        return doWriteBack(sourceFile, destination)
+
+    if not cache:
+        cache = get_best_stashcache()
     logging.debug("Using Cache %s", cache)
     
     sitename = os.environ.setdefault("OSG_SITE_NAME", "siteNotFound")
@@ -116,12 +123,8 @@ def doStashCpSingle(sourceFile, destination, cache, debug=False):
     payload['filename'] = sourceFile
     payload['sitename'] = sitename
     payload.update(parse_job_ad())
-    
-    # Check if the desitnation is a protocol like stash:///user/blah
-    if destination.startswith("stash://"):
-        # Source file exists, must be a writeback
-        return doWriteBack(sourceFile, destination)
-    
+
+
     # Calculate the starting time
     start1 = int(time.time()*1000)
     
@@ -448,14 +451,11 @@ def main():
         source=opts[0]
         destination=opts[1]
 
-
+    cache = None
     # Check for manually entered cache to use
     if args.cache and len(args.cache) > 0:
         cache = args.cache
-    else:
-        cache = get_best_stashcache()
-    
-    
+
     if not args.recursive:
         result = doStashCpSingle(sourceFile=source, destination=destination, cache=cache, debug=args.debug)
     else:
