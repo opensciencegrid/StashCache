@@ -9,6 +9,7 @@ import os
 import json
 import multiprocessing
 import urllib2
+import socket
 import random
 import shutil
 
@@ -342,6 +343,28 @@ def timed_transfer(filename, cache, destination, debug=False):
     return str(xrd_exit)
 
 
+def get_ips(name):
+    ipv4s = []
+    ipv6s = []
+    try:
+        info = socket.getaddrinfo(name, 0, 0, socket.IPPROTO_TCP)
+    except:
+        logging.error("Unable to look up %s", name)
+        return []
+
+    for tuple in info:
+        if (tuple[0] == socket.AF_INET):
+            ipv4s.append(tuple[4][0])
+        elif (tuple[0] == socket.AF_INET6):
+            ipv6s.append(tuple[4][0])
+
+    # randomize the order of each
+    random.shuffle(ipv4s)
+    random.shuffle(ipv6s)
+
+    # always prefer IPv4
+    return ipv4s + ipv6s
+
 def get_best_stashcache():
     
     # First, check for caches.json file in this file's directory:
@@ -371,12 +394,8 @@ def get_best_stashcache():
     # Remove the first comma
     caches_string = caches_string[1:]
     
-    # Here is a list from the output of the command:
-    # attr -qg host_list /cvmfs/oasis.opensciencegrid.org
-    geo_ip_sites = "http://cvmfs-s1fnal.opensciencegrid.org:8000/cvmfs/oasis.opensciencegrid.org;http://cvmfs-s1bnl.opensciencegrid.org:8000/cvmfs/oasis.opensciencegrid.org;http://cvmfs-egi.gridpp.rl.ac.uk:8000/cvmfs/oasis.opensciencegrid.org;http://klei.nikhef.nl:8000/cvmfs/oasis.opensciencegrid.org;http://cvmfsrep.grid.sinica.edu.tw:8000/cvmfs/oasis.opensciencegrid.org".split(';')
-    
-    # Add HCC's, for good measure
-    geo_ip_sites.insert(0,"http://hcc-cvmfs.unl.edu:8000/cvmfs/config-osg.opensciencegrid.org")
+    # Use the geo ip service on the WLCG Web Proxy Auto Discovery machines
+    geo_ip_sites = ["wlcg-wpad.cern.ch", "wlcg-wpad.fnal.gov"]
     
     # Append text before caches string
     append_text = "api/v1.0/geo/stashcp"
@@ -390,20 +409,24 @@ def get_best_stashcache():
     i = 0
     while found == False and i < len(geo_ip_sites):
         cur_site = geo_ip_sites[i]
-        logging.debug("Trying geoip site of: %s", cur_site)
-        final_url = "%s/%s/%s" % (cur_site, append_text, caches_string)
-        logging.debug("Querying for closest cache: %s", final_url)
-        try:
-            # Make the request
-            req = urllib2.Request(final_url, headers=headers)
-            response = urllib2.urlopen(req)
-            if response.getcode() == 200:
-                logging.debug("Got error code 200 from %s", cur_site)
-                found = True
-                break
-        except urllib2.URLError, e:
-            logging.debug("URL error: %s", str(e))
-        i+=1
+        headers['Host'] = cur_site
+        for ip in get_ips(cur_site):
+            logging.debug("Trying geoip site of: %s [%s]", cur_site, ip)
+            final_url = "http://%s/%s/%s" % (ip, append_text, caches_string)
+            logging.debug("Querying for closest cache: %s", final_url)
+            try:
+                # Make the request
+                req = urllib2.Request(final_url, headers=headers)
+                response = urllib2.urlopen(req, timeout=10)
+                if response.getcode() == 200:
+                    logging.debug("Got OK code 200 from %s", cur_site)
+                    found = True
+                    break
+            except urllib2.URLError, e:
+                logging.debug("URL error: %s", str(e))
+            except Exception, e:
+                logging.debug("Error: %s", str(e))
+            i+=1
         
     if found == False:
         # Unable to find a geo_ip server to use, return random choice from caches!
