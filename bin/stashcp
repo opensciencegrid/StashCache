@@ -285,9 +285,9 @@ def dostashcpdirectory(sourceDir, destination, debug=False):
         command2 = 'xrdfs ' + stash_origin + ' stat '+ remote_file + ' | grep "IsDir" | wc -l'
         isdir=subprocess.Popen([command2],stdout=subprocess.PIPE,shell=True).communicate()[0].split()[0]
         if isdir!='0':
-            result = dostashcpdirectory(remote_file, destination, cache, debug)
+            result = dostashcpdirectory(remote_file, destination, debug)
         else:
-            result = doStashCpSingle(remote_file,destination, cache, debug)
+            result = doStashCpSingle(remote_file, destination, debug)
         # Stop transfers if something fails
         if result != 0:
             return result
