@@ -20,6 +20,9 @@ main_redirector = "root://redirector.osgstorage.org"
 stash_origin = "root://stash.osgconnect.net"
 writeback_host = "http://stash-xrd.osgconnect.net:1094"
 
+# Global variable for nearest cache
+nearest_cache = None
+
 TIMEOUT = 300
 DIFF = TIMEOUT * 10
 
@@ -102,8 +105,9 @@ def doWriteBack(source, destination):
     return curl_exit
     
 
-def doStashCpSingle(sourceFile, destination, cache, debug=False):
+def doStashCpSingle(sourceFile, destination, debug=False):
 
+    global nearest_cache
 
     # Check if the desitnation is a protocol like stash:///user/blah
     if destination.startswith("stash://"):
@@ -164,9 +168,9 @@ def doStashCpSingle(sourceFile, destination, cache, debug=False):
         logging.debug("CVMFS File does not exist")
 
     # If the cache is not specified by the command line, then look for the closest
-    if not cache:
-        cache = get_best_stashcache()
-    logging.debug("Using Cache %s", cache)
+    if not nearest_cache:
+        nearest_cache = get_best_stashcache()
+    logging.debug("Using Cache %s", nearest_cache)
 
     # Now check the size of the file with xrootd
     logging.debug("Checking size of file.")
@@ -191,7 +195,7 @@ def doStashCpSingle(sourceFile, destination, cache, debug=False):
     
     start2 = int(time.time()*1000)
     
-    xrd_exit=timed_transfer(filename=sourceFile, debug=debug, cache=cache, destination=destination)
+    xrd_exit=timed_transfer(filename=sourceFile, debug=debug, destination=destination)
     
     end2=int(time.time()*1000)
     if os.path.exists(destination):
@@ -204,7 +208,7 @@ def doStashCpSingle(sourceFile, destination, cache, debug=False):
     
 
     if xrd_exit=='0': #worked first try
-        logging.debug("Transfer success using %s", cache)
+        logging.debug("Transfer success using %s", nearest_cache)
         dltime=end2-start2
         status = 'Success'
         tries=2
@@ -215,14 +219,14 @@ def doStashCpSingle(sourceFile, destination, cache, debug=False):
         payload['destination_space']=destSpace
         payload['status']=status
         payload['tries']=tries
-        payload['cache']=cache
+        payload['cache']=nearest_cache
         es_send(payload)
 
     else: #pull from origin
-        logging.warning("XrdCP from cache failed on %s, pulling from main redirector", cache)
-        cache=main_redirector
+        logging.warning("XrdCP from cache failed on %s, pulling from main redirector", nearest_cache)
+        nearest_cache=main_redirector
         start3 = int(time.time()*1000)
-        xrd_exit=timed_transfer(filename=sourceFile, debug=debug, cache=cache, destination=destination)
+        xrd_exit=timed_transfer(filename=sourceFile, debug=debug, destination=destination)
         end3=int(time.time()*1000)
         if os.path.exists(destination):
             dlSz=os.stat(destination).st_size
@@ -243,7 +247,7 @@ def doStashCpSingle(sourceFile, destination, cache, debug=False):
         payload['tries']=tries
         payload['start3']=start3
         payload['end3']=end3
-        payload['cache']=cache
+        payload['cache']=nearest_cache
         es_send(payload)
         if xrd_exit == '0':
             return 0
@@ -274,15 +278,8 @@ def parse_job_ad():
 
     return temp_list
 
-def dostashcpdirectory(sourceDir, destination, cache, debug=False):
+def dostashcpdirectory(sourceDir, destination, debug=False):
     sourceItems = subprocess.Popen(["xrdfs", stash_origin, "ls", sourceDir], stdout=subprocess.PIPE).communicate()[0].split()
-    
-    # If the cache is not specified by the command line, then look for the closest
-    # Do it here, so that we only do it once per stashcp call.  Though, if everything is in
-    # CVMFS, then this is unncessary.
-    if not cache:
-        cache = get_best_stashcache()
-    logging.debug("Using Cache %s", cache)
     
     for remote_file in sourceItems:
         command2 = 'xrdfs ' + stash_origin + ' stat '+ remote_file + ' | grep "IsDir" | wc -l'
@@ -321,7 +318,7 @@ def es_send(payload):
     
 
 
-def timed_transfer(filename, cache, destination, debug=False):
+def timed_transfer(filename, destination, debug=False):
     """
     Transfer the filename from the cache to the destination using xrdcp
     """
@@ -335,7 +332,7 @@ def timed_transfer(filename, cache, destination, debug=False):
     os.environ.setdefault("XRD_CONNECTIONRETRY", "2")   # How many time should we retry the TCP connection
     os.environ.setdefault("XRD_STREAMTIMEOUT", "30")    # How long to wait for TCP activity
     
-    filepath=cache+":1094//"+ filename
+    filepath=nearest_cache+":1094//"+ filename
     if debug:
         command="xrdcp -d 2 --nopbar -f " + filepath + " " + destination
     else:
@@ -454,6 +451,8 @@ def get_best_stashcache():
 
 
 def main():
+    global nearest_cache
+    
     usage = "usage: %prog [options] source destination"
     parser = optparse.OptionParser(usage)
     parser.add_option('-d', '--debug', dest='debug', action='store_true', help='debug')
@@ -482,15 +481,14 @@ def main():
         source=opts[0]
         destination=opts[1]
 
-    cache = None
     # Check for manually entered cache to use
     if args.cache and len(args.cache) > 0:
-        cache = args.cache
+        nearest_cache = args.cache
 
     if not args.recursive:
-        result = doStashCpSingle(sourceFile=source, destination=destination, cache=cache, debug=args.debug)
+        result = doStashCpSingle(sourceFile=source, destination=destination, debug=args.debug)
     else:
-        result = dostashcpdirectory(sourceDir = source, destination = destination, cache=cache, debug=args.debug)
+        result = dostashcpdirectory(sourceDir = source, destination = destination, debug=args.debug)
     # Exit with failure
     sys.exit(result)
 
