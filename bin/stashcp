@@ -109,10 +109,6 @@ def doStashCpSingle(sourceFile, destination, cache, debug=False):
     if destination.startswith("stash://"):
         # Source file exists, must be a writeback
         return doWriteBack(sourceFile, destination)
-
-    if not cache:
-        cache = get_best_stashcache()
-    logging.debug("Using Cache %s", cache)
     
     sitename = os.environ.setdefault("OSG_SITE_NAME", "siteNotFound")
     
@@ -166,7 +162,12 @@ def doStashCpSingle(sourceFile, destination, cache, debug=False):
     
     else:
         logging.debug("CVMFS File does not exist")
-        
+
+    # If the cache is not specified by the command line, then look for the closest
+    if not cache:
+        cache = get_best_stashcache()
+    logging.debug("Using Cache %s", cache)
+
     # Now check the size of the file with xrootd
     logging.debug("Checking size of file.")
     (xrdfs_stdout, xrdfs_stderr) = subprocess.Popen(["xrdfs", main_redirector, "stat", sourceFile], stdout=subprocess.PIPE).communicate()
