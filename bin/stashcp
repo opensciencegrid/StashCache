@@ -276,6 +276,14 @@ def parse_job_ad():
 
 def dostashcpdirectory(sourceDir, destination, cache, debug=False):
     sourceItems = subprocess.Popen(["xrdfs", stash_origin, "ls", sourceDir], stdout=subprocess.PIPE).communicate()[0].split()
+    
+    # If the cache is not specified by the command line, then look for the closest
+    # Do it here, so that we only do it once per stashcp call.  Though, if everything is in
+    # CVMFS, then this is unncessary.
+    if not cache:
+        cache = get_best_stashcache()
+    logging.debug("Using Cache %s", cache)
+    
     for remote_file in sourceItems:
         command2 = 'xrdfs ' + stash_origin + ' stat '+ remote_file + ' | grep "IsDir" | wc -l'
         isdir=subprocess.Popen([command2],stdout=subprocess.PIPE,shell=True).communicate()[0].split()[0]
