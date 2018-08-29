@@ -379,9 +379,7 @@ def get_best_stashcache():
     caches_list = json.loads(f.read())
     f.close()
     
-    # Get the possible GeoIP sites
-    
-    # Format the caches for the CVMFS query
+    # Format the caches for the GeoIP query
     caches_string = ""
     usable_caches = []
     for cache in caches_list:
@@ -405,9 +403,9 @@ def get_best_stashcache():
     
     # Randomize the geo ip sites
     random.shuffle(geo_ip_sites)
-    found = False
+    order_str = ''
     i = 0
-    while found == False and i < len(geo_ip_sites):
+    while order_str == '' and i < len(geo_ip_sites):
         cur_site = geo_ip_sites[i]
         headers['Host'] = cur_site
         for ip in get_ips(cur_site):
@@ -420,25 +418,26 @@ def get_best_stashcache():
                 response = urllib2.urlopen(req, timeout=10)
                 if response.getcode() == 200:
                     logging.debug("Got OK code 200 from %s", cur_site)
-                    found = True
+                    order_str = response.read()
+                    response.close()
                     break
+                response.close()
             except urllib2.URLError, e:
                 logging.debug("URL error: %s", str(e))
             except Exception, e:
                 logging.debug("Error: %s", str(e))
             i+=1
         
-    if found == False:
+    if order_str == '':
         # Unable to find a geo_ip server to use, return random choice from caches!
         minsite = random.choice(caches_list)
         logging.error("Unable to use Geoip to find closest cache!  Returning random cache %s", minsite)
         return minsite
     else:
-    
-        # From the response, should respond with something like:
+        # The order string should be something like:
         # 3,1,2
-        ordered_list = response.read().strip().split(",")
-        logging.debug("Got response %s", str(ordered_list))
+        ordered_list = order_str.strip().split(",")
+        logging.debug("Got order %s", str(ordered_list))
         minsite = caches_list[int(ordered_list[0])-1]['name']
         
         logging.debug("Returning closest cache: %s", minsite)
