@@ -1,6 +1,6 @@
 # StashCache
 
-## **This documentation is legacy.  Please follow the current documentation on the [OSG Documentation](https://opensciencegrid.org/docs/data/stashcache/overview/) website.**
+## **This documentation is legacy.  Please view the current documentation on the [OSG Documentation](https://opensciencegrid.org/docs/data/stashcache/overview/) website.**
 
 
 This documentation is for Site Admins and OSG Operations team who manage StashCache nodes (origin or cache server; or redirectors). Main functionality of StashCache is based on [XRootD](http://xrootd.org) technology, there are other components involved to function StashCache properly, though. E.g. if you are a user of **"stashcp"** you want to follow [this](https://support.opensciencegrid.org/support/solutions/articles/12000002775-transferring-data-with-stashcache) document instead.
