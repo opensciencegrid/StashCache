@@ -221,6 +221,8 @@ def doStashCpSingle(sourceFile, destination, debug=False):
         payload['status']=status
         payload['tries']=tries
         payload['cache']=nearest_cache
+        if 'filesize' not in payload:
+            payload['filesize']=dlSz
         es_send(payload)
 
     else: #pull from origin
@@ -249,6 +251,8 @@ def doStashCpSingle(sourceFile, destination, debug=False):
         payload['start3']=start3
         payload['end3']=end3
         payload['cache']=nearest_cache
+        if 'filesize' not in payload:
+            payload['filesize']=dlSz
         es_send(payload)
         if xrd_exit == '0':
             return 0
