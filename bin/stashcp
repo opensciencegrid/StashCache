@@ -377,19 +377,19 @@ def get_ips(name):
     return ipv4s + ipv6s
 
 def get_best_stashcache():
-    
-    # First, check for caches.json file in this file's directory:
-    dir_path = os.path.dirname(os.path.realpath(__file__))
-    cache_file = os.path.join(dir_path, 'caches.json')
-    if not os.path.isfile(cache_file):
-        logging.error("Unable to find caches.json in %s", dir_path)
+    cache_files = [os.path.join(os.path.dirname(os.path.realpath(__file__)), "caches.json"),
+                   "/etc/stashcache/caches.json",
+                   "/usr/share/stashcache/caches.json"]
+    for cache_file in cache_files:
+        if os.path.isfile(cache_file):
+            with open(cache_file, 'r') as f:
+                caches_list = json.loads(f.read())
+                logging.debug("Loaded caches list from %s", cache_file)
+            break
+    else:
+        logging.error("Unable to find caches.json in %r", cache_files)
         return None
-    
-    # Get all the caches from the json file
-    f = open(cache_file, 'r')
-    caches_list = json.loads(f.read())
-    f.close()
-    
+
     # Format the caches for the GeoIP query
     caches_string = ""
     usable_caches = []
