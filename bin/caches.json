@@ -4,5 +4,6 @@
     {"name":"root://hcc-stash.unl.edu", "status":1, "longitude":-96.702991, "latitude":40.812957},
     {"name":"root://osgxroot.usatlas.bnl.gov", "status":1, "longitude":-72.9333, "latitude":40.8167},
     {"name":"root://its-condor-xrootd1.syr.edu", "status":1, "longitude":-72.9333, "latitude":40.8167},
-    {"name":"root://stashcache.grid.uchicago.edu", "status":1, "longitude":-72.9333, "latitude":40.8167}
+    {"name":"root://stashcache.grid.uchicago.edu", "status":1, "longitude":-72.9333, "latitude":40.8167},
+    {"name":"root://sc-cache.chtc.wisc.edu", "status":1, "longitude":-89.4012, "latitude":43.0731}
 ]
