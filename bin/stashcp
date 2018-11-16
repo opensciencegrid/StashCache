@@ -377,9 +377,10 @@ def get_ips(name):
     return ipv4s + ipv6s
 
 def get_best_stashcache():
+    prefix = os.environ.get("OSG_LOCATION", "")
     cache_files = [os.path.join(os.path.dirname(os.path.realpath(__file__)), "caches.json"),
-                   "/etc/stashcache/caches.json",
-                   "/usr/share/stashcache/caches.json"]
+                   os.path.join(prefix, "/etc/stashcache/caches.json"),
+                   os.path.join(prefix, "/usr/share/stashcache/caches.json")]
     for cache_file in cache_files:
         if os.path.isfile(cache_file):
             with open(cache_file, 'r') as f:
