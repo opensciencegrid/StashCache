@@ -360,7 +360,7 @@ def get_ips(name):
     ipv4s = []
     ipv6s = []
     try:
-        info = socket.getaddrinfo(name, 0, 0, socket.IPPROTO_TCP)
+        info = socket.getaddrinfo(name, 0, 0, 0, socket.IPPROTO_TCP)
     except:
         logging.error("Unable to look up %s", name)
         return []
