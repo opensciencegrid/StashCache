@@ -199,6 +199,8 @@ def doStashCpSingle(sourceFile, destination, debug=False):
     xrd_exit=timed_transfer(filename=sourceFile, debug=debug, destination=destination)
     
     end2=int(time.time()*1000)
+
+    dlSz=0
     if os.path.exists(destination):
         dlSz=os.stat(destination).st_size
     destSpace=1
