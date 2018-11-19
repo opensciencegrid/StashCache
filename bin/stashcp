@@ -26,6 +26,9 @@ writeback_host = "http://stash-xrd.osgconnect.net:1094"
 # Global variable for nearest cache
 nearest_cache = None
 
+# Global variable for the location of the caches.json file
+caches_json_location = None
+
 TIMEOUT = 300
 DIFF = TIMEOUT * 10
 
@@ -379,10 +382,16 @@ def get_ips(name):
     return ipv4s + ipv6s
 
 def get_best_stashcache():
-    prefix = os.environ.get("OSG_LOCATION", "")
-    cache_files = [os.path.join(os.path.dirname(os.path.realpath(__file__)), "caches.json"),
-                   os.path.join(prefix, "/etc/stashcache/caches.json"),
-                   os.path.join(prefix, "/usr/share/stashcache/caches.json")]
+
+    # Check if the user provided a caches json file location
+    if caches_json_location and os.path.exists(caches_json_location):
+        cache_files = [ caches_json_location ]
+    else:
+        prefix = os.environ.get("OSG_LOCATION", "")
+        cache_files = [os.path.join(os.path.dirname(os.path.realpath(__file__)), "caches.json"),
+                       os.path.join(prefix, "/etc/stashcache/caches.json"),
+                       os.path.join(prefix, "/usr/share/stashcache/caches.json")]
+
     for cache_file in cache_files:
         if os.path.isfile(cache_file):
             with open(cache_file, 'r') as f:
@@ -460,13 +469,16 @@ def get_best_stashcache():
 
 def main():
     global nearest_cache
-    
+    global caches_json_location
+
     usage = "usage: %prog [options] source destination"
     parser = optparse.OptionParser(usage)
     parser.add_option('-d', '--debug', dest='debug', action='store_true', help='debug')
     parser.add_option('-r', dest='recursive', action='store_true', help='recursively copy')
-    parser.add_option('--closest', action='store_true')
+    parser.add_option('--closest', action='store_true', help="Return the closest cache and exit")
     parser.add_option('-c', '--cache', dest='cache', help="Cache to use")
+    parser.add_option('-j', '--caches-json', dest='caches_json', help="The JSON file containing the list of caches",
+                      default=None)
     args,opts=parser.parse_args()
 
     logging.basicConfig(format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
@@ -478,7 +490,8 @@ def main():
         logger.setLevel(logging.DEBUG)
     else:
         logger.setLevel(logging.WARNING)
-        
+
+    caches_json_location = args.caches_json
     if args.closest:
         print get_best_stashcache()
         sys.exit(0)
