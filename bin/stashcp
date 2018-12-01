@@ -171,6 +171,9 @@ def doStashCpSingle(sourceFile, destination, debug=False):
     
     else:
         logging.debug("CVMFS File does not exist")
+    
+    if not check_for_xrootd():
+        return download_with_http(sourceFile, destination, debug)
 
     # If the cache is not specified by the command line, then look for the closest
     if not nearest_cache:
@@ -265,6 +268,100 @@ def doStashCpSingle(sourceFile, destination, debug=False):
             return 1
     return 0
 
+def check_for_xrootd():
+    """
+    Check if xrootd is installed by checking if the xrdcp command returns a reasonable output
+    """
+    # xrdcp output the version on stderr, what?!?
+    check_command = "xrdcp -V 2>&1"
+    logging.debug("Running the command to check of xrdcp existance: %s", check_command)
+    command_object = subprocess.Popen([check_command], stdout=subprocess.PIPE, shell=True)
+    xrdcp_version = command_object.communicate()[0]
+    if command_object.returncode == 0:
+        logging.debug("xrdcp version: %s", xrdcp_version)
+        return xrdcp_version
+    else:
+        logging.debug("xrdcp command returned exit code: %i", command_object.returncode)
+        return False
+    
+
+def download_with_http(source, destination, debug):
+    """
+    Download from the nearest cache with HTTP
+    """
+    global nearest_cache
+    logging.debug("Downloading with HTTP")
+    
+    payload = {}
+    payload['filename'] = source
+    sitename = os.environ.setdefault("OSG_SITE_NAME", "siteNotFound")
+    payload['sitename'] = sitename
+    payload.update(parse_job_ad())
+    # Calculate the starting time
+    start = int(time.time()*1000)
+    
+    if not nearest_cache:
+        nearest_cache = get_best_stashcache()
+    
+    # Parse the nearest_cache url, make sure it uses http
+    # Should really use urlparse, but python3 and python2 urlparse imports are 
+    # very different
+    if nearest_cache.startswith('root://'):
+        nearest_cache = nearest_cache.replace('root://', 'http://')
+    
+    # Append port 8000, which is just a convention for now, not set in stone
+    nearest_cache += ":8000"
+    
+    # Ok, now run the curl command:
+    if debug:
+        output_mode = "-v"
+    else:
+        output_mode = "-s"
+
+    # The command will cd into destination directory and then run curl
+    if os.path.isdir(destination):
+        destination += "/"
+    dest_dir, dest_filename = os.path.split(destination)
+    if not dest_dir:
+        dest_dir = "."
+        
+    if dest_filename:
+        download_output = "-o %s" % dest_filename
+        final_destination = destination
+    else:
+        download_output = "-O"
+        final_destination = os.path.join(dest_dir, os.path.basename(source))
+    curl_command = "cd %s; curl %s --connect-timeout 30 --speed-limit 1024 %s --fail %s%s" % (dest_dir, output_mode, download_output, nearest_cache, source)
+    logging.debug("About to run curl command: %s", curl_command)
+    command_object = subprocess.Popen([curl_command], shell=True)
+    command_object.wait()
+
+    end = int(time.time()*1000)
+    if command_object.returncode == 0:
+        dlSz=os.stat(final_destination).st_size
+        filesize = dlSz
+        status = 'Success'
+        payload['download_size']=dlSz
+        payload['filesize'] = filesize
+    else:
+        status = 'Failure'
+    dltime=end-start
+    destSpace=1
+    payload['timestamp']=end
+    payload['host']=nearest_cache
+    payload['download_time']=dltime
+    payload['destination_space']=destSpace
+    payload['status']=status
+    payload['tries']=1
+    payload['start1']=start
+    payload['end1']=end
+    payload['cache']=nearest_cache
+    es_send(payload)
+    if command_object.returncode == 0:
+        return 0
+    else:
+        return 1
+    
 
 def parse_job_ad():
     """
