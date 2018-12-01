@@ -171,7 +171,7 @@ def doStashCpSingle(sourceFile, destination, debug=False):
     
     else:
         logging.debug("CVMFS File does not exist")
-    
+
     if not check_for_xrootd():
         return download_with_http(sourceFile, destination, debug)
 
@@ -283,7 +283,7 @@ def check_for_xrootd():
     else:
         logging.debug("xrdcp command returned exit code: %i", command_object.returncode)
         return False
-    
+
 
 def download_with_http(source, destination, debug):
     """
@@ -291,7 +291,7 @@ def download_with_http(source, destination, debug):
     """
     global nearest_cache
     logging.debug("Downloading with HTTP")
-    
+
     payload = {}
     payload['filename'] = source
     sitename = os.environ.setdefault("OSG_SITE_NAME", "siteNotFound")
@@ -299,19 +299,19 @@ def download_with_http(source, destination, debug):
     payload.update(parse_job_ad())
     # Calculate the starting time
     start = int(time.time()*1000)
-    
+
     if not nearest_cache:
         nearest_cache = get_best_stashcache()
-    
+
     # Parse the nearest_cache url, make sure it uses http
     # Should really use urlparse, but python3 and python2 urlparse imports are 
     # very different
     if nearest_cache.startswith('root://'):
         nearest_cache = nearest_cache.replace('root://', 'http://')
-    
+
     # Append port 8000, which is just a convention for now, not set in stone
     nearest_cache += ":8000"
-    
+
     # Ok, now run the curl command:
     if debug:
         output_mode = "-v"
@@ -324,7 +324,7 @@ def download_with_http(source, destination, debug):
     dest_dir, dest_filename = os.path.split(destination)
     if not dest_dir:
         dest_dir = "."
-        
+
     if dest_filename:
         download_output = "-o %s" % dest_filename
         final_destination = destination
@@ -361,7 +361,7 @@ def download_with_http(source, destination, debug):
         return 0
     else:
         return 1
-    
+
 
 def parse_job_ad():
     """
