@@ -26,6 +26,9 @@ writeback_host = "http://stash-xrd.osgconnect.net:1094"
 # Global variable for nearest cache
 nearest_cache = None
 
+# Ordered list of nearest caches
+nearest_cache_list = []
+
 # Global variable for the location of the caches.json file
 caches_json_location = None
 
@@ -290,6 +293,7 @@ def download_with_http(source, destination, debug):
     Download from the nearest cache with HTTP
     """
     global nearest_cache
+    global nearest_cache_list
     logging.debug("Downloading with HTTP")
 
     payload = {}
@@ -297,20 +301,9 @@ def download_with_http(source, destination, debug):
     sitename = os.environ.setdefault("OSG_SITE_NAME", "siteNotFound")
     payload['sitename'] = sitename
     payload.update(parse_job_ad())
-    # Calculate the starting time
-    start = int(time.time()*1000)
 
     if not nearest_cache:
         nearest_cache = get_best_stashcache()
-
-    # Parse the nearest_cache url, make sure it uses http
-    # Should really use urlparse, but python3 and python2 urlparse imports are 
-    # very different
-    if nearest_cache.startswith('root://'):
-        nearest_cache = nearest_cache.replace('root://', 'http://')
-
-    # Append port 8000, which is just a convention for now, not set in stone
-    nearest_cache += ":8000"
 
     # Ok, now run the curl command:
     if debug:
@@ -331,13 +324,31 @@ def download_with_http(source, destination, debug):
     else:
         download_output = "-O"
         final_destination = os.path.join(dest_dir, os.path.basename(source))
-    curl_command = "cd %s; curl %s --connect-timeout 30 --speed-limit 1024 %s --fail %s%s" % (dest_dir, output_mode, download_output, nearest_cache, source)
-    logging.debug("About to run curl command: %s", curl_command)
-    command_object = subprocess.Popen([curl_command], shell=True)
-    command_object.wait()
+    
+    # Try 2 nearest caches
+    success = False
+    start = end = 0
+    for cache in nearest_cache_list[:2]:
+        # Parse the nearest_cache url, make sure it uses http
+        # Should really use urlparse, but python3 and python2 urlparse imports are 
+        # very different
+        if nearest_cache.startswith('root://'):
+            nearest_cache = nearest_cache.replace('root://', 'http://')
 
-    end = int(time.time()*1000)
-    if command_object.returncode == 0:
+        # Append port 8000, which is just a convention for now, not set in stone
+        nearest_cache += ":8000"
+        curl_command = "cd %s; curl %s -L --connect-timeout 30 --speed-limit 1024 %s --fail %s%s" % (dest_dir, output_mode, download_output, nearest_cache, source)
+        logging.debug("About to run curl command: %s", curl_command)
+        start = int(time.time()*1000)
+        command_object = subprocess.Popen([curl_command], shell=True)
+        command_object.wait()
+        end = int(time.time()*1000)
+        
+        if command_object.returncode == 0:
+            success = True
+            break
+
+    if success:
         dlSz=os.stat(final_destination).st_size
         filesize = dlSz
         status = 'Success'
@@ -357,7 +368,7 @@ def download_with_http(source, destination, debug):
     payload['end1']=end
     payload['cache']=nearest_cache
     es_send(payload)
-    if command_object.returncode == 0:
+    if success:
         return 0
     else:
         return 1
@@ -479,6 +490,7 @@ def get_ips(name):
     return ipv4s + ipv6s
 
 def get_best_stashcache():
+    global nearest_cache_list
 
     # Check if the user provided a caches json file location
     if caches_json_location and os.path.exists(caches_json_location):
@@ -559,13 +571,19 @@ def get_best_stashcache():
         ordered_list = order_str.strip().split(",")
         logging.debug("Got order %s", str(ordered_list))
         minsite = caches_list[int(ordered_list[0])-1]['name']
+
+        nearest_cache_list = []
+        for ordered_index in ordered_list:
+            nearest_cache_list.append(caches_list[int(ordered_index)-1]['name'])
         
         logging.debug("Returning closest cache: %s", minsite)
+        logging.debug("Ordered list of nearest caches: %s", str(nearest_cache_list))
         return minsite
 
 
 def main():
     global nearest_cache
+    global nearest_cache_list
     global caches_json_location
 
     usage = "usage: %prog [options] source destination"
@@ -602,6 +620,7 @@ def main():
     # Check for manually entered cache to use
     if args.cache and len(args.cache) > 0:
         nearest_cache = args.cache
+        nearest_cache_list = [ args.cache ]
 
     if not args.recursive:
         result = doStashCpSingle(sourceFile=source, destination=destination, debug=args.debug)
