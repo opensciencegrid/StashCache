@@ -328,16 +328,18 @@ def download_with_http(source, destination, debug):
     # Try 2 nearest caches
     success = False
     start = end = 0
+    tried_cache = ""
     for cache in nearest_cache_list[:2]:
+        tried_cache = cache
         # Parse the nearest_cache url, make sure it uses http
         # Should really use urlparse, but python3 and python2 urlparse imports are 
         # very different
-        if nearest_cache.startswith('root://'):
-            nearest_cache = nearest_cache.replace('root://', 'http://')
+        if cache.startswith('root://'):
+            cache = cache.replace('root://', 'http://')
 
         # Append port 8000, which is just a convention for now, not set in stone
-        nearest_cache += ":8000"
-        curl_command = "cd %s; curl %s -L --connect-timeout 30 --speed-limit 1024 %s --fail %s%s" % (dest_dir, output_mode, download_output, nearest_cache, source)
+        cache += ":8000"
+        curl_command = "cd %s; curl %s -L --connect-timeout 30 --speed-limit 1024 %s --fail %s%s" % (dest_dir, output_mode, download_output, cache, source)
         logging.debug("About to run curl command: %s", curl_command)
         start = int(time.time()*1000)
         command_object = subprocess.Popen([curl_command], shell=True)
@@ -359,14 +361,14 @@ def download_with_http(source, destination, debug):
     dltime=end-start
     destSpace=1
     payload['timestamp']=end
-    payload['host']=nearest_cache
+    payload['host']=tried_cache
     payload['download_time']=dltime
     payload['destination_space']=destSpace
     payload['status']=status
     payload['tries']=1
     payload['start1']=start
     payload['end1']=end
-    payload['cache']=nearest_cache
+    payload['cache']=tried_cache
     es_send(payload)
     if success:
         return 0
