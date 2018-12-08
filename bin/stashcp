@@ -564,7 +564,7 @@ def get_best_stashcache():
         
     if order_str == '':
         # Unable to find a geo_ip server to use, return random choice from caches!
-        minsite = random.choice(caches_list)
+        minsite = random.choice(caches_list)['name']
         random.shuffle(caches_list)
         nearest_cache_list = [cache['name'] for cache in caches_list]
         logging.error("Unable to use Geoip to find closest cache!  Returning random cache %s", minsite)
