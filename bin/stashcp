@@ -339,10 +339,13 @@ def download_with_http(source, destination, debug):
 
         # Append port 8000, which is just a convention for now, not set in stone
         cache += ":8000"
-        curl_command = "cd %s; curl %s -L --connect-timeout 30 --speed-limit 1024 %s --fail %s%s" % (dest_dir, output_mode, download_output, cache, source)
+        
+        # Quote the source URL, which may have weird, dangerous characters
+        quoted_source = urllib2.quote(source)
+        curl_command = "curl %s -L --connect-timeout 30 --speed-limit 1024 %s --fail %s%s" % (output_mode, download_output, cache, quoted_source)
         logging.debug("About to run curl command: %s", curl_command)
         start = int(time.time()*1000)
-        command_object = subprocess.Popen([curl_command], shell=True)
+        command_object = subprocess.Popen([curl_command], shell=True, cwd=dest_dir)
         command_object.wait()
         end = int(time.time()*1000)
         
