@@ -98,7 +98,7 @@ fi
 rm -f query.test
 
 # Perform methods test
-/StashCache/bin/stashcp --cache=$XRD_CACHE --method=http -d /user/dweitzel/public/blast/queries/query1 ./
+/StashCache/bin/stashcp --cache=$XRD_CACHE --method=http,xrootd -d /user/dweitzel/public/blast/queries/query1 ./
 
 result=`md5sum query1 | awk '{print $1;}'`
 
