@@ -18,6 +18,7 @@ env:
   - OS_TYPE=centos OS_VERSION=7 XRD_CACHE="root://its-condor-xrootd1.syr.edu"
   - OS_TYPE=centos OS_VERSION=7 XRD_CACHE="root://stashcache.grid.uchicago.edu"
   - OS_TYPE=centos OS_VERSION=7 XRD_CACHE="root://sc-cache.chtc.wisc.edu"
+  - BUILD_TYPE=http OS_TYPE=centos OS_VERSION=7
   
 
 language: python
