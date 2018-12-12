@@ -419,7 +419,7 @@ def es_send(payload):
             f.close()
         except urllib2.URLError, e:
             logging.warning("Error posting to ES: %s", str(e))
-    print payload
+
     p = multiprocessing.Process(target=_es_send, name="_es_send", args=(payload,))
     p.start()
     p.join(5)
