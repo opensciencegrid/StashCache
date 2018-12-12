@@ -78,7 +78,7 @@ fi
 rm -f query.test
 
 # Perform methods test
-/StashCache/bin/stashcp --cache=$XRD_CACHE --method=cvmfs -d /user/dweitzel/public/blast/queries/query1 ./
+/StashCache/bin/stashcp --cache=$XRD_CACHE --method=cvmfs,xrootd -d /user/dweitzel/public/blast/queries/query1 ./
 
 result=`md5sum query1 | awk '{print $1;}'`
 
