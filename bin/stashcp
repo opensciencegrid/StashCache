@@ -161,6 +161,8 @@ def doStashCpSingle(sourceFile, destination, methods, debug=False):
             if download_http(sourceFile, destination, debug, payload):
                 success = True
                 break
+        else:
+            logging.error("Unknown transfer method: %s", method)
 
     end1 = int(time.time()*1000)
     payload['start1']=start1
