@@ -75,6 +75,39 @@ result=`md5sum query1 | awk '{print $1;}'`
 if [ "$result" != "12bdb9a96cd5e8ca469b727a81593201" ]; then
   exit 1
 fi
+rm -f query.test
+
+# Perform methods test
+/StashCache/bin/stashcp --cache=$XRD_CACHE --method=cvmfs -d /user/dweitzel/public/blast/queries/query1 ./
+
+result=`md5sum query1 | awk '{print $1;}'`
+
+if [ "$result" != "12bdb9a96cd5e8ca469b727a81593201" ]; then
+  exit 1
+fi
+rm -f query.test
+
+# Perform methods test
+/StashCache/bin/stashcp --cache=$XRD_CACHE --method=xrootd -d /user/dweitzel/public/blast/queries/query1 ./
+
+result=`md5sum query1 | awk '{print $1;}'`
+
+if [ "$result" != "12bdb9a96cd5e8ca469b727a81593201" ]; then
+  exit 1
+fi
+rm -f query.test
+
+# Perform methods test
+/StashCache/bin/stashcp --cache=$XRD_CACHE --method=http -d /user/dweitzel/public/blast/queries/query1 ./
+
+result=`md5sum query1 | awk '{print $1;}'`
+
+if [ "$result" != "12bdb9a96cd5e8ca469b727a81593201" ]; then
+  exit 1
+fi
+rm -f query.test
+
+
 
 /StashCache/bin/stashcp --cache=$XRD_CACHE -d -r /user/dweitzel/public/blast/queries ./
 ls -lah
