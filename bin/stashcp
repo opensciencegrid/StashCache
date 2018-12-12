@@ -245,7 +245,7 @@ def download_xrootd(sourceFile, destination, debug, payload):
         payload['cache'] = cache
 
     else: #pull from origin
-        logging.warning("XrdCP from cache failed on %s, pulling from main redirector", nearest_cache)
+        logging.info("XrdCP from cache failed on %s, pulling from main redirector", nearest_cache)
         cache = main_redirector
         xrd_exit=timed_transfer(filename=sourceFile, cache=cache, debug=debug, destination=destination)
 
@@ -450,7 +450,11 @@ def timed_transfer(filename, destination, cache, debug=False, ):
     filename="./"+filename.split("/")[-1]
     if os.path.isfile(filename):
         os.remove(filename)
-    xrdcp=subprocess.Popen([command ],shell=True,stdout=subprocess.PIPE)
+
+    if debug:
+        xrdcp=subprocess.Popen([command ],shell=True,stdout=subprocess.PIPE)
+    else:
+        xrdcp=subprocess.Popen([command ],shell=True,stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     
     xrdcp.communicate()
     xrd_exit=xrdcp.returncode
