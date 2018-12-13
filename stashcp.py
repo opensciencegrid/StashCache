@@ -18,7 +18,7 @@ import logging
 from urlparse import urlparse
 
 # Version information for user-agent
-VERSION = "5.2.0"
+VERSION = "5.2.1"
 
 main_redirector = "root://redirector.osgstorage.org"
 stash_origin = "root://stash.osgconnect.net"
