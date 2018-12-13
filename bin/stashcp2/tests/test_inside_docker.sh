@@ -42,7 +42,7 @@ cp /StashCache/bin/stashcp2/tests/job.ad ./.job.ad
 
 # Test against a file that is known to not exist
 set +e
-/StashCache/bin/stashcp --cache=$XRD_CACHE /blah/does/not/exist ./
+/StashCache/stashcp.py --cache=$XRD_CACHE /blah/does/not/exist ./
 if [ $? -eq 0 ]; then
   echo "Failed to exit with non-zero exit status when it should have"
   exit 1
@@ -50,14 +50,14 @@ fi
 set -e
 
 # Try copying with no forward slash
-/StashCache/bin/stashcp --cache=$XRD_CACHE user/dweitzel/public/blast/queries/query1 ./
+/StashCache/stashcp.py --cache=$XRD_CACHE user/dweitzel/public/blast/queries/query1 ./
 
 result=`md5sum query1 | awk '{print $1;}'`
 
 rm query1
 
 # Try copying with different destintion filename
-/StashCache/bin/stashcp --cache=$XRD_CACHE -d /user/dweitzel/public/blast/queries/query1 query.test
+/StashCache/stashcp.py --cache=$XRD_CACHE -d /user/dweitzel/public/blast/queries/query1 query.test
 
 result=`md5sum query.test | awk '{print $1;}'`
 
@@ -68,7 +68,7 @@ fi
 rm -f query.test
 
 # Perform tests
-/StashCache/bin/stashcp --cache=$XRD_CACHE -d /user/dweitzel/public/blast/queries/query1 ./
+/StashCache/stashcp.py --cache=$XRD_CACHE -d /user/dweitzel/public/blast/queries/query1 ./
 
 result=`md5sum query1 | awk '{print $1;}'`
 
@@ -78,7 +78,7 @@ fi
 rm -f query.test
 
 # Perform methods test
-/StashCache/bin/stashcp --cache=$XRD_CACHE --method=cvmfs,xrootd -d /user/dweitzel/public/blast/queries/query1 ./
+/StashCache/stashcp.py --cache=$XRD_CACHE --method=cvmfs,xrootd -d /user/dweitzel/public/blast/queries/query1 ./
 
 result=`md5sum query1 | awk '{print $1;}'`
 
@@ -88,7 +88,7 @@ fi
 rm -f query.test
 
 # Perform methods test
-/StashCache/bin/stashcp --cache=$XRD_CACHE --method=xrootd -d /user/dweitzel/public/blast/queries/query1 ./
+/StashCache/stashcp.py --cache=$XRD_CACHE --method=xrootd -d /user/dweitzel/public/blast/queries/query1 ./
 
 result=`md5sum query1 | awk '{print $1;}'`
 
@@ -98,7 +98,7 @@ fi
 rm -f query.test
 
 # Perform methods test
-/StashCache/bin/stashcp --cache=$XRD_CACHE --method=http,xrootd -d /user/dweitzel/public/blast/queries/query1 ./
+/StashCache/stashcp.py --cache=$XRD_CACHE --method=http,xrootd -d /user/dweitzel/public/blast/queries/query1 ./
 
 result=`md5sum query1 | awk '{print $1;}'`
 
@@ -109,7 +109,7 @@ rm -f query.test
 
 
 
-/StashCache/bin/stashcp --cache=$XRD_CACHE -d -r /user/dweitzel/public/blast/queries ./
+/StashCache/stashcp.py --cache=$XRD_CACHE -d -r /user/dweitzel/public/blast/queries ./
 ls -lah
 
 rm -rf queries

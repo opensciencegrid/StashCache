@@ -13,11 +13,17 @@ import socket
 import random
 import shutil
 
+try:
+    from pkg_resources import resource_string
+except ImportError as e:
+    resource_string = None
+
+
 import logging
 from urlparse import urlparse
 
 # Version information for user-agent
-VERSION = "5.2.0"
+VERSION = "5.2.1"
 
 main_redirector = "root://redirector.osgstorage.org"
 stash_origin = "root://stash.osgconnect.net"
@@ -495,6 +501,8 @@ def get_best_stashcache():
         cache_files = [os.path.join(os.path.dirname(os.path.realpath(__file__)), "caches.json"),
                        os.path.join(prefix, "/etc/stashcache/caches.json"),
                        os.path.join(prefix, "/usr/share/stashcache/caches.json")]
+        if resource_string:
+            cache_files.insert(0, resource_string(__name__, 'caches.json'))
 
     for cache_file in cache_files:
         if os.path.isfile(cache_file):

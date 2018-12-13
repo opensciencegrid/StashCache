@@ -10,10 +10,11 @@ if [ "${BUILD_TYPE}" = "http" ]; then
   # Run the test without a container
   # Copy in the .job.ad file:
   cp bin/stashcp2/tests/job.ad ./.job.ad
+  python setup.py install
 
   # Test against a file that is known to not exist
   set +e
-  bin/stashcp --cache=$XRD_CACHE /blah/does/not/exist ./
+  stashcp --cache=$XRD_CACHE /blah/does/not/exist ./
   if [ $? -eq 0 ]; then
     echo "Failed to exit with non-zero exit status when it should have"
     exit 1
@@ -21,7 +22,7 @@ if [ "${BUILD_TYPE}" = "http" ]; then
   set -e
 
   # Try copying with different destintion filename
-  bin/stashcp --cache=$XRD_CACHE -d /user/dweitzel/public/blast/queries/query1 query.test
+  stashcp --cache=$XRD_CACHE -d /user/dweitzel/public/blast/queries/query1 query.test
 
   result=`md5sum query.test | awk '{print $1;}'`
 
@@ -32,7 +33,7 @@ if [ "${BUILD_TYPE}" = "http" ]; then
   rm -f query.test
 
   # Perform tests
-  bin/stashcp --cache=$XRD_CACHE -d /user/dweitzel/public/blast/queries/query1 ./
+  stashcp --cache=$XRD_CACHE -d /user/dweitzel/public/blast/queries/query1 ./
 
   result=`md5sum query1 | awk '{print $1;}'`
 
