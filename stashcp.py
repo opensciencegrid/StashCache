@@ -12,7 +12,12 @@ import urllib2
 import socket
 import random
 import shutil
-from pkg_resources import resource_string
+
+try:
+    from pkg_resources import resource_string
+except ImportError as e:
+    resource_string = None
+
 
 import logging
 from urlparse import urlparse
@@ -493,10 +498,11 @@ def get_best_stashcache():
         cache_files = [ caches_json_location ]
     else:
         prefix = os.environ.get("OSG_LOCATION", "")
-        cache_files = [resource_string(__name__, 'caches.json'),
-                       os.path.join(os.path.dirname(os.path.realpath(__file__)), "caches.json"),
+        cache_files = [os.path.join(os.path.dirname(os.path.realpath(__file__)), "caches.json"),
                        os.path.join(prefix, "/etc/stashcache/caches.json"),
                        os.path.join(prefix, "/usr/share/stashcache/caches.json")]
+        if resource_string:
+            cache_files.insert(0, resource_string(__name__, 'caches.json'))
 
     for cache_file in cache_files:
         if os.path.isfile(cache_file):
