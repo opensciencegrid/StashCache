@@ -1,7 +1,6 @@
 sudo: required
 env:
   matrix:
-  - BUILD_TYPE=docs OS_VERSION=7
   - OS_TYPE=centos OS_VERSION=6
   - OS_TYPE=centos OS_VERSION=7
   - OS_TYPE=centos OS_VERSION=6 XRD_CACHE="root://xrd-cache-1.t2.ucsd.edu"
