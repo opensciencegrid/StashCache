@@ -12,6 +12,7 @@ import urllib2
 import socket
 import random
 import shutil
+from urlparse import urlparse
 
 try:
     from pkg_resources import resource_string
@@ -27,7 +28,8 @@ VERSION = "5.2.1"
 
 main_redirector = "root://redirector.osgstorage.org"
 stash_origin = "root://stash.osgconnect.net"
-writeback_host = "http://stash-xrd.osgconnect.net:1094"
+writeback_host = "http://redirector.osgstorage.org"
+#writeback_host = "http://stash-xrd.osgconnect.net:1094"
 
 # Global variable for nearest cache
 nearest_cache = None
@@ -37,6 +39,9 @@ nearest_cache_list = []
 
 # Global variable for the location of the caches.json file
 caches_json_location = None
+
+# Global variable for the location of the token to use for reading / writing
+token_location = None
 
 TIMEOUT = 300
 DIFF = TIMEOUT * 10
@@ -49,26 +54,11 @@ def doWriteBack(source, destination):
     :param str destination: The location of the remote file, in stash:// format
     """
     start1 = int(time.time()*1000)
-    
-     # Get the scitoken content
-    scitoken_file = None
-    if '_CONDOR_CREDS' in os.environ:
-        # First, look for the scitokens.use file
-        # Format: _CONDOR_CREDS=/var/lib/condor/execute/dir_908/.condor_creds
-        scitoken_file = os.path.join(os.environ['_CONDOR_CREDS'], 'scitokens.use')
-        if not os.path.exists(scitoken_file):
-            scitoken_file = None
-    
-    if not scitoken_file and os.path.exists(".condor_creds/scitokens.use"):
-        scitoken_file = ".condor_creds/scitokens.use"
-    
-    if not scitoken_file:
+
+    scitoken_contents = getToken()
+    if scitoken_contents is None:
         logging.error("Unable to find scitokens.use file")
         return 1
-
-    
-    with open(scitoken_file, 'r') as scitoken_obj:
-        scitoken_contents = scitoken_obj.read().strip()
 
     # Remove the stash:// at the beginning, don't need it
     destination = destination.replace("stash://", "")
@@ -119,6 +109,26 @@ def doWriteBack(source, destination):
     es_send(payload)
     return curl_exit
     
+def getToken():
+    """
+    Get the token / scitoken from the environment in order to read / write
+    """
+    # Get the scitoken content
+    scitoken_file = None
+    if token_location:
+        scitoken_file = token_location
+
+    if 'TOKEN' in os.environ:
+        scitoken_file = os.environ['TOKEN']
+        
+    if not scitoken_file or not os.path.exists(scitoken_file):
+        logging.info("Unable to find token file")
+        return None
+
+    with open(scitoken_file, 'r') as scitoken_obj:
+        scitoken_contents = scitoken_obj.read().strip()
+
+    return scitoken_contents
 
 def doStashCpSingle(sourceFile, destination, methods, debug=False):
     """
@@ -299,10 +309,9 @@ def download_http(source, destination, debug, payload):
     global nearest_cache
     global nearest_cache_list
 
-    if not nearest_cache:
-        nearest_cache = get_best_stashcache()
-
     logging.debug("Downloading with HTTP")
+
+    scitoken_contents = getToken()
 
     if not nearest_cache:
         nearest_cache = get_best_stashcache()
@@ -340,11 +349,17 @@ def download_http(source, destination, debug, payload):
             cache = cache.replace('root://', 'http://')
 
         # Append port 8000, which is just a convention for now, not set in stone
-        cache += ":8000"
+        # Check if the cache already has a port attached to it
+        parsed_url = urlparse(cache)
+        if not parsed_url.port:
+            cache += ":8000"
         
         # Quote the source URL, which may have weird, dangerous characters
         quoted_source = urllib2.quote(source)
-        curl_command = "curl %s -L --connect-timeout 30 --speed-limit 1024 %s --fail %s%s" % (output_mode, download_output, cache, quoted_source)
+        if scitoken_contents:
+            curl_command = "curl %s -L --connect-timeout 30 --speed-limit 1024 %s --fail -H \"Authorization: Bearer %s\" %s%s" % (output_mode, download_output, scitoken_contents, cache, quoted_source)
+        else:
+            curl_command = "curl %s -L --connect-timeout 30 --speed-limit 1024 %s --fail %s%s" % (output_mode, download_output, cache, quoted_source)
         logging.debug("About to run curl command: %s", curl_command)
         start = int(time.time()*1000)
         command_object = subprocess.Popen([curl_command], shell=True, cwd=dest_dir)
@@ -591,6 +606,7 @@ def main():
     global nearest_cache
     global nearest_cache_list
     global caches_json_location
+    global token_location
 
     usage = "usage: %prog [options] source destination"
     parser = optparse.OptionParser(usage)
@@ -601,6 +617,7 @@ def main():
     parser.add_option('-j', '--caches-json', dest='caches_json', help="The JSON file containing the list of caches",
                       default=None)
     parser.add_option('--methods', dest='methods', help="Comma separated list of methods to try, in order.  Default: cvmfs,xrootd,http", default="cvmfs,xrootd,http")
+    parser.add_option('-t', '--token', dest='token', help="Token file to use for reading and/or writing")
     args,opts=parser.parse_args()
 
     logging.basicConfig(format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
@@ -613,7 +630,10 @@ def main():
     else:
         logger.setLevel(logging.WARNING)
 
-    caches_json_location = args.caches_json
+    if 'CACHES_JSON' in os.environ:
+        caches_json_location = os.environ['CACHES_JSON']
+    else:
+        caches_json_location = args.caches_json
     if args.closest:
         print get_best_stashcache()
         sys.exit(0)
@@ -625,9 +645,15 @@ def main():
         destination=opts[1]
 
     # Check for manually entered cache to use
-    if args.cache and len(args.cache) > 0:
+    if 'NEAREST_CACHE' in os.environ:
+        nearest_cache = os.environ['NEAREST_CACHE']
+        nearest_cache_list = [nearest_cache]
+    elif args.cache and len(args.cache) > 0:
         nearest_cache = args.cache
-        nearest_cache_list = [ args.cache ]
+        nearest_cache_list = [args.cache]
+    
+    if args.token:
+        token_location = args.token
 
     # Convert the methods
     methods = args.methods.split(',')
