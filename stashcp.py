@@ -643,6 +643,9 @@ def main():
         source=opts[0]
         destination=opts[1]
 
+    if not source.startswith("/"):
+        source = "/" + source
+
     # Check for manually entered cache to use
     if 'NEAREST_CACHE' in os.environ:
         nearest_cache = os.environ['NEAREST_CACHE']
