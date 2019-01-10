@@ -28,8 +28,7 @@ VERSION = "5.2.1"
 
 main_redirector = "root://redirector.osgstorage.org"
 stash_origin = "root://stash.osgconnect.net"
-writeback_host = "http://redirector.osgstorage.org"
-#writeback_host = "http://stash-xrd.osgconnect.net:1094"
+writeback_host = "http://stash-xrd.osgconnect.net:1094"
 
 # Global variable for nearest cache
 nearest_cache = None
