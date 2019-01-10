@@ -461,7 +461,10 @@ def timed_transfer(filename, destination, cache, debug=False, ):
     os.environ.setdefault("XRD_CONNECTIONRETRY", "2")   # How many time should we retry the TCP connection
     os.environ.setdefault("XRD_STREAMTIMEOUT", "30")    # How long to wait for TCP activity
     
-    filepath=cache+":1094//"+ filename
+    if not filename.startswith("/"):
+        filepath=cache+":1094//"+ filename
+    else:
+        filepath=cache+":1094/"+ filename
     if debug:
         command="xrdcp -d 2 --nopbar -f " + filepath + " " + destination
     else:
