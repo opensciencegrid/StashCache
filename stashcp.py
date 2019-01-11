@@ -119,13 +119,20 @@ def getToken():
 
     if 'TOKEN' in os.environ:
         scitoken_file = os.environ['TOKEN']
+
+    # If the scitoken file is relative, then assume it's relative
+    # to the _CONDOR_CREDS directory.
+    if not os.path.isabs(scitoken_file) and "_CONDOR_CREDS" in os.environ:
+        os.path.join(os.environ['_CONDOR_CREDS'], scitoken_file)
         
     if not scitoken_file or not os.path.exists(scitoken_file):
         logging.info("Unable to find token file")
         return None
 
+    # Read in the JSON
     with open(scitoken_file, 'r') as scitoken_obj:
-        scitoken_contents = scitoken_obj.read().strip()
+        token_json = json.load(scitoken_obj)
+        scitoken_contents = token_json['access_token']
 
     return scitoken_contents
 
