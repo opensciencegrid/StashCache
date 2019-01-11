@@ -114,11 +114,21 @@ def getToken():
     """
     # Get the scitoken content
     scitoken_file = None
+
+    # Command line
     if token_location:
         scitoken_file = token_location
-
+    # Environ
     if 'TOKEN' in os.environ:
         scitoken_file = os.environ['TOKEN']
+
+    # Backwards compatibility for getting scitokens
+    if not scitoken_file and "_CONDOR_CREDS" in os.environ:
+        # Token wasn't specified on the command line, try the default scitokens.use
+        if os.path.exists(os.path.join(os.environ["_CONDOR_CREDS"], "scitokens.use")):
+            scitoken_file = os.path.join(os.environ["_CONDOR_CREDS"], "scitokens.use")
+        elif os.path.exists(".condor_creds/scitokens.use"):
+            scitoken_file = os.path.join(os.path.abspath(".condor_creds/scitokens.use"))
 
     if not scitoken_file or not os.path.exists(scitoken_file):
         logging.info("Unable to find token file")
