@@ -28,7 +28,7 @@ VERSION = "5.2.1"
 
 main_redirector = "root://redirector.osgstorage.org"
 stash_origin = "root://stash.osgconnect.net"
-writeback_host = "http://stash-xrd.osgconnect.net:1094"
+writeback_host = "https://redirector.osgstorage.org:8443"
 
 # Global variable for nearest cache
 nearest_cache = None
@@ -58,9 +58,6 @@ def doWriteBack(source, destination):
     if scitoken_contents is None:
         logging.error("Unable to find scitokens.use file")
         return 1
-
-    # Remove the stash:// at the beginning, don't need it
-    destination = destination.replace("stash://", "")
     
     # Check if the source file is zero-length
     statinfo = os.stat(source)
@@ -153,13 +150,32 @@ def doStashCpSingle(sourceFile, destination, methods, debug=False):
 
     global nearest_cache
 
-    # Check if the desitnation is a protocol like stash:///user/blah
-    if destination.startswith("stash://"):
-        # Source file exists, must be a writeback
-        return doWriteBack(sourceFile, destination)
-    
+    # Parse the source and destination with urlparse
+    source_url = urlparse(sourceFile)
+    dest_url = urlparse(destination)
+    understoodSchemes = ["stash", "file", ""]
+    if source_url.scheme not in understoodSchemes:
+        logging.error("Do not understand scheme: %s", source_url.scheme)
+        return 1
+
+    if dest_url.scheme not in understoodSchemes:
+        logging.error("Do not understand scheme: %s", dest_url.scheme)
+        return 1
+
+    if dest_url.scheme == "stash":
+        return doWriteBack(source_url.path, dest_url.path)
+
+    if dest_url.scheme == "file":
+        destination = dest_url.path
+
+    if source_url.scheme == "stash":
+        sourceFile = source_url.path
+
+    if not sourceFile.startswith("/"):
+        sourceFile = "/" + sourceFile
+
     sitename = os.environ.setdefault("OSG_SITE_NAME", "siteNotFound")
-    
+
     # Fill out the payload as much as possible
     filename = destination + '/' + sourceFile.split('/')[-1]
     
@@ -662,9 +678,6 @@ def main():
     else:
         source=opts[0]
         destination=opts[1]
-
-    if not source.startswith("/"):
-        source = "/" + source
 
     # Check for manually entered cache to use
     if 'NEAREST_CACHE' in os.environ:
