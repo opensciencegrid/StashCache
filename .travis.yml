@@ -1,7 +1,6 @@
 sudo: required
 env:
   matrix:
-  - BUILD_TYPE=docs OS_VERSION=7
   - OS_TYPE=centos OS_VERSION=6
   - OS_TYPE=centos OS_VERSION=7
   - OS_TYPE=centos OS_VERSION=6 XRD_CACHE="root://xrd-cache-1.t2.ucsd.edu"
@@ -22,7 +21,7 @@ env:
   - OS_TYPE=centos OS_VERSION=7 XRD_CACHE="root://osg-kansas-city-stashcache.nrp.internet2.edu"
   - OS_TYPE=centos OS_VERSION=7 XRD_CACHE="osg-chicago-stashcache.nrp.internet2.edu"
   - OS_TYPE=centos OS_VERSION=7 XRD_CACHE="fiona.uvalight.net"
-  - OS_TYPE=centos OS_VERSION=7 XRD_CACHE="root://sc-cache.chtc.wisc.edu"
+  - BUILD_TYPE=http OS_TYPE=centos OS_VERSION=7
   
 
 language: python
@@ -33,17 +32,26 @@ before_script:
 - pip install markdown-include
 
 services:
- - docker
+- docker
 
 before_install:
- - sudo apt-get update
- - echo 'DOCKER_OPTS="-H tcp://127.0.0.1:2375 -H unix:///var/run/docker.sock -s devicemapper"' | sudo tee /etc/default/docker > /dev/null
- - sudo service docker restart
- - sleep 5
- - sudo docker pull centos:centos${OS_VERSION}
+- sudo apt-get update
+- echo 'DOCKER_OPTS="-H tcp://127.0.0.1:2375 -H unix:///var/run/docker.sock -s devicemapper"'
+  | sudo tee /etc/default/docker > /dev/null
+- sudo service docker restart
+- sleep 5
+- sudo docker pull centos:centos${OS_VERSION}
 
 
 script:
- # Run tests in Container
- - if [ "$BUILD_TYPE" = "docs" ]; then bin/stashcp2/tests/build_docs.sh; fi
- - bin/stashcp2/tests/setup_tests.sh ${OS_VERSION}
+- if [ "$BUILD_TYPE" = "docs" ]; then bin/stashcp2/tests/build_docs.sh; fi
+- bin/stashcp2/tests/setup_tests.sh ${OS_VERSION}
+
+deploy:
+  provider: pypi
+  user: "djw8605"
+  skip_existing: true
+  password:
+    secure: fRcpI2s8eM5VcHt7q3ROxiB69ATg8XewRBXSY2LvdxysVKc9rp38KJOAI2JtS+JYdmoY/BUeLUHmxwEmSywjtK2x7qYP7EImscyu0deIsNFx9z+2eyfkPlPEA7StE5isorpIzGTqINvptqk1zGycQM9OUhJqOjFfdLH3/dlQFFhbRnoqPZx/j+QHdVgLgVn72RHEc6leW6zHPGyrLJH8wmPpvzEHFRf0pdFb73vcONzboB1yFwmh6GrDa6+B/uHS3H9N7J6P3QMQjn6yV6Q3f5D/mV+v9AdAqHvKY0QLCIo6bDooq7eGq0dPgbooktIzN4tvsbOkG7eqCtPLxiVyBdFPPQb9PTRHinf/+zs3LylpYKElmu9whkvDaKz2GxKStctFsRr7ofC0vVIp5pjArPVKT4etLOwmzmMchTP/qUIhvFG3MwQOR7x80GpTTgkrv21z1/h3bFyk8zRaikQuZ6X3uIm3+FrG8fp6HVnR9jROYE9BV4UF2Mf+QZ2I7NqC9T0ASw9HslM4G/E0M97JODmNIAppquDAZRR+jPUUqwWHL3W65SAncoc2teNz8TLZLFvnPA01PK/ltpvssEL2lWIZrCshNyX1OJA24mMgs1aqB22PNPc7cvvGQGDvLaYweUZDMnyJiCevHicPOcqj9pWXAzHib+3GzPZ8dWa1d2g=
+  on:
+    tags: true

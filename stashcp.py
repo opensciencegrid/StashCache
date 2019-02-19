@@ -13,11 +13,17 @@ import socket
 import random
 import shutil
 
+try:
+    from pkg_resources import resource_string
+except ImportError as e:
+    resource_string = None
+
+
 import logging
 from urlparse import urlparse
 
 # Version information for user-agent
-VERSION = "5.1.2"
+VERSION = "5.2.1"
 
 main_redirector = "root://redirector.osgstorage.org"
 stash_origin = "root://stash.osgconnect.net"
@@ -25,6 +31,9 @@ writeback_host = "http://stash-xrd.osgconnect.net:1094"
 
 # Global variable for nearest cache
 nearest_cache = None
+
+# Ordered list of nearest caches
+nearest_cache_list = []
 
 # Global variable for the location of the caches.json file
 caches_json_location = None
@@ -111,7 +120,10 @@ def doWriteBack(source, destination):
     return curl_exit
     
 
-def doStashCpSingle(sourceFile, destination, debug=False):
+def doStashCpSingle(sourceFile, destination, methods, debug=False):
+    """
+    Perform a single copy from StashCache federation
+    """
 
     global nearest_cache
 
@@ -134,7 +146,58 @@ def doStashCpSingle(sourceFile, destination, debug=False):
 
     # Calculate the starting time
     start1 = int(time.time()*1000)
-    
+
+    # Go through the download methods
+    cur_method = methods[0]
+    success = False
+    for method in methods:
+        cur_method = method
+        if method == "cvmfs":
+            logging.info("Trying CVMFS...")
+            if download_cvmfs(sourceFile, destination, debug, payload):
+                success = True
+                break
+        elif method == "xrootd":
+            logging.info("Trying XrootD...")
+            if download_xrootd(sourceFile, destination, debug, payload):
+                success = True
+                break
+        elif method == "http":
+            logging.info("Trying HTTP...")
+            if download_http(sourceFile, destination, debug, payload):
+                success = True
+                break
+        else:
+            logging.error("Unknown transfer method: %s", method)
+
+    end1 = int(time.time()*1000)
+    payload['start1']=start1
+    payload['end1']=end1
+    payload['timestamp']=end1
+    payload['download_time']=end1-start1
+    if success:
+        payload['status'] = 'Success'
+
+        # Get the final size of the downloaded file
+        if os.path.isdir(destination):
+            destination += "/"
+        dest_dir, dest_filename = os.path.split(destination)
+
+        if dest_filename:
+            final_destination = destination
+        else:
+            final_destination = os.path.join(dest_dir, os.path.basename(sourceFile))
+        payload['filesize'] = os.stat(final_destination).st_size
+        payload['download_size'] = payload['filesize']
+    else:
+        payload['status'] = 'Fail'
+
+    es_send(payload)
+    return success
+
+
+def download_cvmfs(sourceFile, destination, debug, payload):
+
     # First, check if the file is available in CVMFS
     if sourceFile[0] == '/':
         cvmfs_file = os.path.join("/cvmfs/stash.osgstorage.org/", sourceFile[1:])
@@ -146,124 +209,166 @@ def doStashCpSingle(sourceFile, destination, debug=False):
             shutil.copy(cvmfs_file, destination)
             logging.debug("Succesfully copied file from CVMFS!")
             end1 = int(time.time()*1000)
-            dlSz=os.stat(destination).st_size
-            filesize = os.stat(cvmfs_file).st_size
-            dltime=end1-start1
-            destSpace=1
-            status = 'Success'
-            payload['timestamp']=end1
-            payload['host']="CVMFS"
-            payload['download_size']=dlSz
-            payload['filesize'] = filesize
-            payload['download_time']=dltime
-            payload['destination_space']=destSpace
-            payload['status']=status
             payload['tries']=1
-            payload['start1']=start1
-            payload['end1']=end1
             payload['cache']="CVMFS"
-            es_send(payload)
-                
-            return 0
+            payload['host']="CVMFS"
+            return True
             
         except IOError as e:
             logging.error("Unable to copy with CVMFS, even though file exists: %s", str(e))
-    
+            return False
+
     else:
         logging.debug("CVMFS File does not exist")
+
+    return False
+
+def download_xrootd(sourceFile, destination, debug, payload):
+    """
+    Download from the nearest cache, if that fails, fallback to
+    the stash origin.
+    """
+    global nearest_cache
+    global nearest_cache_list
+
+    # Check for xrootd, return quickly if it's not available
+    if not check_for_xrootd():
+        return False
 
     # If the cache is not specified by the command line, then look for the closest
     if not nearest_cache:
         nearest_cache = get_best_stashcache()
+    cache = nearest_cache
     logging.debug("Using Cache %s", nearest_cache)
-
-    # Now check the size of the file with xrootd
-    logging.debug("Checking size of file.")
-    (xrdfs_stdout, xrdfs_stderr) = subprocess.Popen(["xrdfs", main_redirector, "stat", sourceFile], stdout=subprocess.PIPE).communicate()
-    xrdcp_version = subprocess.Popen(['echo $(xrdcp -V 2>&1)'], stdout=subprocess.PIPE, shell=True).communicate()[0][:-1]
-    try:
-        fileSize = int(re.findall(r"Size:   \d+", xrdfs_stdout)[0].split(":   ")[1])
-        logging.debug("Size of the file %s is %s", sourceFile, fileSize)
-        payload['filesize'] = fileSize
-    except (ValueError, IndexError) as e:
-        sys.stderr.write("Unable to find size of file from the origin\n")
-        print str(xrdfs_stdout)
-        sys.stderr.write(str(xrdfs_stderr))
-        sys.stderr.write("\n")
     
-    payload['xrdcp_version'] = xrdcp_version
-    
-    end1=int(time.time()*1000)
-    payload['end1']=end1
-    payload['start1']=start1
-    
-    start2 = int(time.time()*1000)
-    
-    xrd_exit=timed_transfer(filename=sourceFile, debug=debug, destination=destination)
-    
-    end2=int(time.time()*1000)
-
-    dlSz=0
-    if os.path.exists(destination):
-        dlSz=os.stat(destination).st_size
-    destSpace=1
+    xrd_exit = timed_transfer(filename=sourceFile, debug=debug, cache=cache, destination=destination)
 
     payload['xrdexit1']=xrd_exit
-    payload['start2']=start2
-    payload['end2']=end2
-    
 
     if xrd_exit=='0': #worked first try
         logging.debug("Transfer success using %s", nearest_cache)
-        dltime=end2-start2
-        status = 'Success'
-        tries=2
-
-        payload['download_size']=dlSz
-        payload['download_time']=dltime
-        payload['sitename']=sitename
-        payload['destination_space']=destSpace
-        payload['status']=status
-        payload['tries']=tries
-        payload['cache']=nearest_cache
-        if 'filesize' not in payload:
-            payload['filesize']=dlSz
-        es_send(payload)
+        payload['tries'] = 1
+        payload['cache'] = cache
 
     else: #pull from origin
-        logging.warning("XrdCP from cache failed on %s, pulling from main redirector", nearest_cache)
-        nearest_cache=main_redirector
-        start3 = int(time.time()*1000)
-        xrd_exit=timed_transfer(filename=sourceFile, debug=debug, destination=destination)
-        end3=int(time.time()*1000)
-        if os.path.exists(destination):
-            dlSz=os.stat(destination).st_size
-        dltime=end3-start3
+        logging.info("XrdCP from cache failed on %s, pulling from main redirector", nearest_cache)
+        cache = main_redirector
+        xrd_exit=timed_transfer(filename=sourceFile, cache=cache, debug=debug, destination=destination)
+
         if xrd_exit=='0':
             logging.info("Trunk Success")
             status = 'Trunk Sucess'
-            tries=3
+            tries=2
         else:
-            logging.error("stashcp failed after 3 attempts")
+            logging.info("stashcp failed after 2 xrootd attempts")
             status = 'Timeout'
-            tries = 3
-        payload['download_size']=dlSz
-        payload['download_time']=dltime
-        payload['destination_space']=destSpace
+            tries = 2
+
         payload['status']=status
         payload['xrdexit2']=xrd_exit
         payload['tries']=tries
-        payload['start3']=start3
-        payload['end3']=end3
-        payload['cache']=nearest_cache
-        if 'filesize' not in payload:
-            payload['filesize']=dlSz
-        es_send(payload)
+        payload['cache'] = cache
+
         if xrd_exit == '0':
-            return 0
+            return True
         else:
-            return 1
-    return 0
+            return False
+    return True
+
+def check_for_xrootd():
+    """
+    Check if xrootd is installed by checking if the xrdcp command returns a reasonable output
+    """
+    # xrdcp output the version on stderr, what?!?
+    check_command = "xrdcp -V 2>&1"
+    logging.debug("Running the command to check of xrdcp existance: %s", check_command)
+    command_object = subprocess.Popen([check_command], stdout=subprocess.PIPE, shell=True)
+    xrdcp_version = command_object.communicate()[0]
+    if command_object.returncode == 0:
+        logging.debug("xrdcp version: %s", xrdcp_version)
+        return xrdcp_version
+    else:
+        logging.debug("xrdcp command returned exit code: %i", command_object.returncode)
+        return False
+
+
+def download_http(source, destination, debug, payload):
+    """
+    Download from the nearest cache with HTTP
+    """
+    global nearest_cache
+    global nearest_cache_list
+
+    if not nearest_cache:
+        nearest_cache = get_best_stashcache()
+
+    logging.debug("Downloading with HTTP")
+
+    if not nearest_cache:
+        nearest_cache = get_best_stashcache()
+
+    # Ok, now run the curl command:
+    if debug:
+        output_mode = "-v"
+    else:
+        output_mode = "-s"
+
+    # The command will cd into destination directory and then run curl
+    if os.path.isdir(destination):
+        destination += "/"
+    dest_dir, dest_filename = os.path.split(destination)
+    if not dest_dir:
+        dest_dir = "."
+
+    if dest_filename:
+        download_output = "-o %s" % dest_filename
+        final_destination = destination
+    else:
+        download_output = "-O"
+        final_destination = os.path.join(dest_dir, os.path.basename(source))
+    
+    # Try 2 nearest caches
+    success = False
+    start = end = 0
+    tried_cache = ""
+    for cache in nearest_cache_list[:2]:
+        tried_cache = cache
+        # Parse the nearest_cache url, make sure it uses http
+        # Should really use urlparse, but python3 and python2 urlparse imports are 
+        # very different
+        if cache.startswith('root://'):
+            cache = cache.replace('root://', 'http://')
+
+        # Append port 8000, which is just a convention for now, not set in stone
+        cache += ":8000"
+        
+        # Quote the source URL, which may have weird, dangerous characters
+        quoted_source = urllib2.quote(source)
+        curl_command = "curl %s -L --connect-timeout 30 --speed-limit 1024 %s --fail %s%s" % (output_mode, download_output, cache, quoted_source)
+        logging.debug("About to run curl command: %s", curl_command)
+        start = int(time.time()*1000)
+        command_object = subprocess.Popen([curl_command], shell=True, cwd=dest_dir)
+        command_object.wait()
+        end = int(time.time()*1000)
+        
+        if command_object.returncode == 0:
+            success = True
+            break
+
+    if success:
+        dlSz=os.stat(final_destination).st_size
+        filesize = dlSz
+        status = 'Success'
+        payload['download_size']=dlSz
+        payload['filesize'] = filesize
+
+    payload['host']=tried_cache
+    payload['tries']=1
+    payload['cache']=tried_cache
+    if success:
+        return True
+    else:
+        return False
 
 
 def parse_job_ad():
@@ -288,7 +393,7 @@ def parse_job_ad():
 
     return temp_list
 
-def dostashcpdirectory(sourceDir, destination, debug=False):
+def dostashcpdirectory(sourceDir, destination, methods, debug=False):
     sourceItems = subprocess.Popen(["xrdfs", stash_origin, "ls", sourceDir], stdout=subprocess.PIPE).communicate()[0].split()
     
     for remote_file in sourceItems:
@@ -297,7 +402,7 @@ def dostashcpdirectory(sourceDir, destination, debug=False):
         if isdir!='0':
             result = dostashcpdirectory(remote_file, destination, debug)
         else:
-            result = doStashCpSingle(remote_file, destination, debug)
+            result = doStashCpSingle(remote_file, destination, methods, debug)
         # Stop transfers if something fails
         if result != 0:
             return result
@@ -307,7 +412,7 @@ def es_send(payload):
     
     # Calculate the curernt timestamp
     payload['timestamp'] = int(time.time()*1000)
-    payload['host'] = payload['cache']
+    #payload['host'] = payload['cache']
     
     def _es_send(payload):
         data = payload
@@ -320,7 +425,7 @@ def es_send(payload):
             f.close()
         except urllib2.URLError, e:
             logging.warning("Error posting to ES: %s", str(e))
-    
+
     p = multiprocessing.Process(target=_es_send, name="_es_send", args=(payload,))
     p.start()
     p.join(5)
@@ -328,7 +433,7 @@ def es_send(payload):
     
 
 
-def timed_transfer(filename, destination, debug=False):
+def timed_transfer(filename, destination, cache, debug=False, ):
     """
     Transfer the filename from the cache to the destination using xrdcp
     """
@@ -342,7 +447,7 @@ def timed_transfer(filename, destination, debug=False):
     os.environ.setdefault("XRD_CONNECTIONRETRY", "2")   # How many time should we retry the TCP connection
     os.environ.setdefault("XRD_STREAMTIMEOUT", "30")    # How long to wait for TCP activity
     
-    filepath=nearest_cache+":1094//"+ filename
+    filepath=cache+":1094//"+ filename
     if debug:
         command="xrdcp -d 2 --nopbar -f " + filepath + " " + destination
     else:
@@ -351,7 +456,11 @@ def timed_transfer(filename, destination, debug=False):
     filename="./"+filename.split("/")[-1]
     if os.path.isfile(filename):
         os.remove(filename)
-    xrdcp=subprocess.Popen([command ],shell=True,stdout=subprocess.PIPE)
+
+    if debug:
+        xrdcp=subprocess.Popen([command ],shell=True,stdout=subprocess.PIPE)
+    else:
+        xrdcp=subprocess.Popen([command ],shell=True,stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     
     xrdcp.communicate()
     xrd_exit=xrdcp.returncode
@@ -382,6 +491,7 @@ def get_ips(name):
     return ipv4s + ipv6s
 
 def get_best_stashcache():
+    global nearest_cache_list
 
     # Check if the user provided a caches json file location
     if caches_json_location and os.path.exists(caches_json_location):
@@ -391,6 +501,8 @@ def get_best_stashcache():
         cache_files = [os.path.join(os.path.dirname(os.path.realpath(__file__)), "caches.json"),
                        os.path.join(prefix, "/etc/stashcache/caches.json"),
                        os.path.join(prefix, "/usr/share/stashcache/caches.json")]
+        if resource_string:
+            cache_files.insert(0, resource_string(__name__, 'caches.json'))
 
     for cache_file in cache_files:
         if os.path.isfile(cache_file):
@@ -453,8 +565,11 @@ def get_best_stashcache():
         
     if order_str == '':
         # Unable to find a geo_ip server to use, return random choice from caches!
-        minsite = random.choice(caches_list)
+        minsite = random.choice(caches_list)['name']
+        random.shuffle(caches_list)
+        nearest_cache_list = [cache['name'] for cache in caches_list]
         logging.error("Unable to use Geoip to find closest cache!  Returning random cache %s", minsite)
+        logging.debug("Ordered list of nearest caches: %s", str(nearest_cache_list))
         return minsite
     else:
         # The order string should be something like:
@@ -462,13 +577,19 @@ def get_best_stashcache():
         ordered_list = order_str.strip().split(",")
         logging.debug("Got order %s", str(ordered_list))
         minsite = caches_list[int(ordered_list[0])-1]['name']
+
+        nearest_cache_list = []
+        for ordered_index in ordered_list:
+            nearest_cache_list.append(caches_list[int(ordered_index)-1]['name'])
         
         logging.debug("Returning closest cache: %s", minsite)
+        logging.debug("Ordered list of nearest caches: %s", str(nearest_cache_list))
         return minsite
 
 
 def main():
     global nearest_cache
+    global nearest_cache_list
     global caches_json_location
 
     usage = "usage: %prog [options] source destination"
@@ -479,6 +600,7 @@ def main():
     parser.add_option('-c', '--cache', dest='cache', help="Cache to use")
     parser.add_option('-j', '--caches-json', dest='caches_json', help="The JSON file containing the list of caches",
                       default=None)
+    parser.add_option('--methods', dest='methods', help="Comma separated list of methods to try, in order.  Default: cvmfs,xrootd,http", default="cvmfs,xrootd,http")
     args,opts=parser.parse_args()
 
     logging.basicConfig(format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
@@ -505,13 +627,17 @@ def main():
     # Check for manually entered cache to use
     if args.cache and len(args.cache) > 0:
         nearest_cache = args.cache
+        nearest_cache_list = [ args.cache ]
+
+    # Convert the methods
+    methods = args.methods.split(',')
 
     if not args.recursive:
-        result = doStashCpSingle(sourceFile=source, destination=destination, debug=args.debug)
+        result = doStashCpSingle(sourceFile=source, destination=destination, methods = methods, debug=args.debug)
     else:
-        result = dostashcpdirectory(sourceDir = source, destination = destination, debug=args.debug)
+        result = dostashcpdirectory(sourceDir = source, destination = destination, methods = methods, debug=args.debug)
     # Exit with failure
-    sys.exit(result)
+    sys.exit(0 if result else 1)
 
 
 if __name__ == "__main__":
