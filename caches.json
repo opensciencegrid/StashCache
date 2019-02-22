@@ -1,13 +1,11 @@
 [ 
-    {"name":"root://xrd-cache-1.t2.ucsd.edu", "status":1, "longitude":-117.2359, "latitude":32.8807},
-    {"name":"root://mwt2-stashcache.campuscluster.illinois.edu", "status":1, "longitude":-88.23, "latitude":40.107487},
-    {"name":"root://hcc-stash.unl.edu", "status":1, "longitude":-96.702991, "latitude":40.812957},
     {"name":"root://osgxroot.usatlas.bnl.gov", "status":1, "longitude":-72.9333, "latitude":40.8167},
     {"name":"root://its-condor-xrootd1.syr.edu", "status":1, "longitude":-72.9333, "latitude":40.8167},
-    {"name":"root://stashcache.grid.uchicago.edu", "status":1, "longitude":-72.9333, "latitude":40.8167},
     {"name":"root://sc-cache.chtc.wisc.edu", "status":1, "longitude":-89.4012, "latitude":43.0731},
     {"name":"root://osg-new-york-stashcache.nrp.internet2.edu", "status":1, "longitude":-74.006, "latitude":40.7143},
     {"name":"root://osg-kansas-city-stashcache.nrp.internet2.edu", "status":1, "longitude":-94.5986, "latitude":39.1024},
     {"name":"root://osg-chicago-stashcache.nrp.internet2.edu", "status":1, "longitude":-87.6181, "latitude":41.8858},
-    {"name":"root://fiona.uvalight.net", "status":1, "longitude":4.8995, "latitude":52.3824}
+    {"name":"root://fiona.uvalight.net", "status":1, "longitude":4.8995, "latitude":52.3824},
+    {"name":"root://stashcache.t2.ucsd.edu", "status":1, "longitude":-117.2359, "latitude":32.8807},
+    {"name":"root://osg-gftp.pace.gatech.edu", "status":1, "longitude":-84.398, "latitude":33.7763},
 ]
