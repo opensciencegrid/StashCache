@@ -7,5 +7,5 @@
     {"name":"root://osg-chicago-stashcache.nrp.internet2.edu", "status":1, "longitude":-87.6181, "latitude":41.8858},
     {"name":"root://fiona.uvalight.net", "status":1, "longitude":4.8995, "latitude":52.3824},
     {"name":"root://stashcache.t2.ucsd.edu", "status":1, "longitude":-117.2359, "latitude":32.8807},
-    {"name":"root://osg-gftp.pace.gatech.edu", "status":1, "longitude":-84.398, "latitude":33.7763},
+    {"name":"root://osg-gftp.pace.gatech.edu", "status":1, "longitude":-84.398, "latitude":33.7763}
 ]
