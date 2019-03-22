@@ -514,6 +514,7 @@ def timed_transfer(filename, destination, cache, debug=False, ):
         os.remove(filename)
 
     if debug:
+        logging.debug("xrdcp command: %s", command)
         xrdcp=subprocess.Popen([command ],shell=True,stdout=subprocess.PIPE)
     else:
         xrdcp=subprocess.Popen([command ],shell=True,stdout=subprocess.PIPE, stderr=subprocess.PIPE)
