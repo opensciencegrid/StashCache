@@ -138,8 +138,13 @@ def getToken():
 
     # Read in the JSON
     with open(scitoken_file, 'r') as scitoken_obj:
-        token_json = json.load(scitoken_obj)
-        scitoken_contents = token_json['access_token']
+        try:
+            token_json = json.load(scitoken_obj)
+            scitoken_contents = token_json['access_token']
+        except ValueError as jsonfail:
+            logging.info("Falling back to old style scitoken parsing")
+            scitoken_obj.seek(0)
+            scitoken_contents = scitoken_obj.read()
 
     return scitoken_contents
 
