@@ -24,11 +24,11 @@ import logging
 from urlparse import urlparse
 
 # Version information for user-agent
-VERSION = "5.2.1"
+VERSION = "5.3.0"
 
 main_redirector = "root://redirector.osgstorage.org"
 stash_origin = "root://stash.osgconnect.net"
-writeback_host = "https://redirector.osgstorage.org:8443"
+writeback_host = "http://stash-xrd.osgconnect.net:1094"
 
 # Global variable for nearest cache
 nearest_cache = None
