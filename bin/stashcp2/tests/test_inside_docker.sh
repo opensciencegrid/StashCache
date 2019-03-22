@@ -107,7 +107,15 @@ if [ "$result" != "12bdb9a96cd5e8ca469b727a81593201" ]; then
 fi
 rm -f query.test
 
+# Scheme test
+/StashCache/stashcp.py --cache=$XRD_CACHE --method=http,xrootd -d stash:///user/dweitzel/public/blast/queries/query1 file://$PWD
 
+result=`md5sum query1 | awk '{print $1;}'`
+
+if [ "$result" != "12bdb9a96cd5e8ca469b727a81593201" ]; then
+  exit 1
+fi
+rm -f query.test
 
 /StashCache/stashcp.py --cache=$XRD_CACHE -d -r /user/dweitzel/public/blast/queries ./
 ls -lah
