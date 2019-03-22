@@ -348,7 +348,8 @@ def download_http(source, destination, debug, payload):
 
     logging.debug("Downloading with HTTP")
 
-    scitoken_contents = getToken()
+    #scitoken_contents = getToken()
+    scitoken_contents = None
 
     if not nearest_cache:
         nearest_cache = get_best_stashcache()
