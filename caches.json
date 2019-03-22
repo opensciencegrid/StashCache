@@ -1,5 +1,4 @@
 [ 
-    {"name":"root://osgxroot.usatlas.bnl.gov", "status":1, "longitude":-72.9333, "latitude":40.8167},
     {"name":"root://its-condor-xrootd1.syr.edu", "status":1, "longitude":-72.9333, "latitude":40.8167},
     {"name":"root://sc-cache.chtc.wisc.edu", "status":1, "longitude":-89.4012, "latitude":43.0731},
     {"name":"root://osg-new-york-stashcache.nrp.internet2.edu", "status":1, "longitude":-74.006, "latitude":40.7143},
