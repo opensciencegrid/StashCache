@@ -240,7 +240,7 @@ def doStashCpSingle(sourceFile, destination, methods, debug=False):
         payload['status'] = 'Fail'
 
     es_send(payload)
-    return success
+    return 0 if success else 1
 
 
 def download_cvmfs(sourceFile, destination, debug, payload):
@@ -459,6 +459,7 @@ def dostashcpdirectory(sourceDir, destination, methods, debug=False):
         # Stop transfers if something fails
         if result != 0:
             return result
+    return 0
 
 
 def es_send(payload):
@@ -705,7 +706,7 @@ def main():
     else:
         result = dostashcpdirectory(sourceDir = source, destination = destination, methods = methods, debug=args.debug)
     # Exit with failure
-    sys.exit(0 if result else 1)
+    sys.exit(result)
 
 
 if __name__ == "__main__":
