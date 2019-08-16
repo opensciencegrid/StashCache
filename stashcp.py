@@ -125,7 +125,7 @@ def getToken():
         if os.path.exists(os.path.join(os.environ["_CONDOR_CREDS"], "scitokens.use")):
             scitoken_file = os.path.join(os.environ["_CONDOR_CREDS"], "scitokens.use")
         elif os.path.exists(".condor_creds/scitokens.use"):
-            scitoken_file = os.path.join(os.path.abspath(".condor_creds/scitokens.use"))
+            scitoken_file = os.path.abspath(".condor_creds/scitokens.use")
 
     if not scitoken_file or not os.path.exists(scitoken_file):
         logging.info("Unable to find token file")
@@ -247,10 +247,7 @@ def doStashCpSingle(sourceFile, destination, methods, debug=False):
 def download_cvmfs(sourceFile, destination, debug, payload):
 
     # First, check if the file is available in CVMFS
-    if sourceFile[0] == '/':
-        cvmfs_file = os.path.join("/cvmfs/stash.osgstorage.org/", sourceFile[1:])
-    else:
-        cvmfs_file = os.path.join("/cvmfs/stash.osgstorage.org/", sourceFile)
+    cvmfs_file = os.path.join("/cvmfs/stash.osgstorage.org", sourceFile.lstrip("/"))
     logging.debug("Checking if the CVMFS file exists: %s", cvmfs_file)
     if os.path.exists(cvmfs_file):
         try:
@@ -558,8 +555,8 @@ def get_best_stashcache():
     else:
         prefix = os.environ.get("OSG_LOCATION", "")
         cache_files = [os.path.join(os.path.dirname(os.path.realpath(__file__)), "caches.json"),
-                       os.path.join(prefix, "/etc/stashcache/caches.json"),
-                       os.path.join(prefix, "/usr/share/stashcache/caches.json")]
+                       os.path.join(prefix, "etc/stashcache/caches.json"),
+                       os.path.join(prefix, "usr/share/stashcache/caches.json")]
         if resource_string:
             cache_files.insert(0, resource_string(__name__, 'caches.json'))
 
