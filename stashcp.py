@@ -237,6 +237,7 @@ def doStashCpSingle(sourceFile, destination, methods, debug=False):
         payload['filesize'] = os.stat(final_destination).st_size
         payload['download_size'] = payload['filesize']
     else:
+        logging.error("All methods failed! Unable to download file.")
         payload['status'] = 'Fail'
 
     es_send(payload)
@@ -262,7 +263,7 @@ def download_cvmfs(sourceFile, destination, debug, payload):
             return True
             
         except IOError as e:
-            logging.error("Unable to copy with CVMFS, even though file exists: %s", str(e))
+            logging.warning("Unable to copy with CVMFS, even though file exists: %s", str(e))
             return False
 
     else:
@@ -626,7 +627,7 @@ def get_best_stashcache():
         minsite = random.choice(caches_list)['name']
         random.shuffle(caches_list)
         nearest_cache_list = [cache['name'] for cache in caches_list]
-        logging.error("Unable to use Geoip to find closest cache!  Returning random cache %s", minsite)
+        logging.warning("Unable to use Geoip to find closest cache!  Returning random cache %s", minsite)
         logging.debug("Ordered list of nearest caches: %s", str(nearest_cache_list))
         return minsite
     else:
