@@ -650,7 +650,7 @@ def main():
     global token_location
 
     usage = "usage: %prog [options] source destination"
-    parser = optparse.OptionParser(usage)
+    parser = optparse.OptionParser(usage, version="stashcp %s" % VERSION)
     parser.add_option('-d', '--debug', dest='debug', action='store_true', help='debug')
     parser.add_option('-r', dest='recursive', action='store_true', help='recursively copy')
     parser.add_option('--closest', action='store_true', help="Return the closest cache and exit")
