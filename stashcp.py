@@ -553,7 +553,7 @@ def get_best_stashcache():
     if caches_json_location and os.path.exists(caches_json_location):
         cache_files = [ caches_json_location ]
     else:
-        prefix = os.environ.get("OSG_LOCATION", "")
+        prefix = os.environ.get("OSG_LOCATION", "/")
         cache_files = [os.path.join(os.path.dirname(os.path.realpath(__file__)), "caches.json"),
                        os.path.join(prefix, "etc/stashcache/caches.json"),
                        os.path.join(prefix, "usr/share/stashcache/caches.json")]
