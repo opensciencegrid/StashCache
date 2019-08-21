@@ -125,7 +125,7 @@ def getToken():
         if os.path.exists(os.path.join(os.environ["_CONDOR_CREDS"], "scitokens.use")):
             scitoken_file = os.path.join(os.environ["_CONDOR_CREDS"], "scitokens.use")
         elif os.path.exists(".condor_creds/scitokens.use"):
-            scitoken_file = os.path.join(os.path.abspath(".condor_creds/scitokens.use"))
+            scitoken_file = os.path.abspath(".condor_creds/scitokens.use")
 
     if not scitoken_file or not os.path.exists(scitoken_file):
         logging.info("Unable to find token file")
@@ -237,6 +237,7 @@ def doStashCpSingle(sourceFile, destination, methods, debug=False):
         payload['filesize'] = os.stat(final_destination).st_size
         payload['download_size'] = payload['filesize']
     else:
+        logging.error("All methods failed! Unable to download file.")
         payload['status'] = 'Fail'
 
     es_send(payload)
@@ -246,10 +247,7 @@ def doStashCpSingle(sourceFile, destination, methods, debug=False):
 def download_cvmfs(sourceFile, destination, debug, payload):
 
     # First, check if the file is available in CVMFS
-    if sourceFile[0] == '/':
-        cvmfs_file = os.path.join("/cvmfs/stash.osgstorage.org/", sourceFile[1:])
-    else:
-        cvmfs_file = os.path.join("/cvmfs/stash.osgstorage.org/", sourceFile)
+    cvmfs_file = os.path.join("/cvmfs/stash.osgstorage.org", sourceFile.lstrip("/"))
     logging.debug("Checking if the CVMFS file exists: %s", cvmfs_file)
     if os.path.exists(cvmfs_file):
         try:
@@ -262,7 +260,7 @@ def download_cvmfs(sourceFile, destination, debug, payload):
             return True
             
         except IOError as e:
-            logging.error("Unable to copy with CVMFS, even though file exists: %s", str(e))
+            logging.warning("Unable to copy with CVMFS, even though file exists: %s", str(e))
             return False
 
     else:
@@ -555,10 +553,10 @@ def get_best_stashcache():
     if caches_json_location and os.path.exists(caches_json_location):
         cache_files = [ caches_json_location ]
     else:
-        prefix = os.environ.get("OSG_LOCATION", "")
+        prefix = os.environ.get("OSG_LOCATION", "/")
         cache_files = [os.path.join(os.path.dirname(os.path.realpath(__file__)), "caches.json"),
-                       os.path.join(prefix, "/etc/stashcache/caches.json"),
-                       os.path.join(prefix, "/usr/share/stashcache/caches.json")]
+                       os.path.join(prefix, "etc/stashcache/caches.json"),
+                       os.path.join(prefix, "usr/share/stashcache/caches.json")]
         if resource_string:
             cache_files.insert(0, resource_string(__name__, 'caches.json'))
 
@@ -626,7 +624,7 @@ def get_best_stashcache():
         minsite = random.choice(caches_list)['name']
         random.shuffle(caches_list)
         nearest_cache_list = [cache['name'] for cache in caches_list]
-        logging.error("Unable to use Geoip to find closest cache!  Returning random cache %s", minsite)
+        logging.warning("Unable to use Geoip to find closest cache!  Returning random cache %s", minsite)
         logging.debug("Ordered list of nearest caches: %s", str(nearest_cache_list))
         return minsite
     else:
