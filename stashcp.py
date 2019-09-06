@@ -558,7 +558,10 @@ def get_best_stashcache():
                        os.path.join(prefix, "etc/stashcache/caches.json"),
                        os.path.join(prefix, "usr/share/stashcache/caches.json")]
         if resource_string:
-            cache_files.insert(0, resource_string(__name__, 'caches.json'))
+            try:
+                cache_files.insert(0, resource_string(__name__, 'caches.json'))
+            except IOError as ioe:
+                logging.debug("Unable to retrieve caches.json using resource string, trying other locations")
 
     for cache_file in cache_files:
         if os.path.isfile(cache_file):
