@@ -14,11 +14,6 @@ import random
 import shutil
 from urlparse import urlparse
 
-try:
-    from pkg_resources import resource_string
-except ImportError as e:
-    resource_string = None
-
 
 import logging
 from urlparse import urlparse
@@ -554,14 +549,9 @@ def get_best_stashcache():
         cache_files = [ caches_json_location ]
     else:
         prefix = os.environ.get("OSG_LOCATION", "/")
-        cache_files = [os.path.join(os.path.dirname(os.path.realpath(__file__)), "caches.json"),
-                       os.path.join(prefix, "etc/stashcache/caches.json"),
-                       os.path.join(prefix, "usr/share/stashcache/caches.json")]
-        if resource_string:
-            try:
-                cache_files.insert(0, resource_string(__name__, 'caches.json'))
-            except IOError as ioe:
-                logging.debug("Unable to retrieve caches.json using resource string, trying other locations")
+        cache_files = [os.path.join(prefix, "etc/stashcache/caches.json"),
+                       os.path.join(prefix, "usr/share/stashcache/caches.json"),
+                       os.path.join(prefix, "usr/local/share/stashcache/caches.json")]
 
     for cache_file in cache_files:
         if os.path.isfile(cache_file):
