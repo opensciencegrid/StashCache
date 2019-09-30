@@ -559,7 +559,7 @@ def get_best_stashcache():
                        os.path.join(prefix, "usr/local/share/stashcache/caches.json")]
         if resource_filename:
             try:
-		cache_files.append(resource_filename(__name__, 'caches.json'))
+                cache_files.append(resource_filename(__name__, 'caches.json'))
             except IOError as ioe:
                 logging.debug("Unable to retrieve caches.json using resource string, trying other locations")
 
