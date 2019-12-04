@@ -408,7 +408,7 @@ def download_http(source, destination, debug, payload):
             bearer_auth = "-H \"Authorization: Bearer %s\"" % (scitoken_contents)
         else:
             bearer_auth = ""
-        curl_command = "curl %s -L --connect-timeout 30 --speed-limit 1024 %s --fail -H \"User-Agent: %s\" %s%s%s" % (output_mode, download_output, user_agent, bearer_auth, cache, quoted_source)
+        curl_command = "curl %s -L --connect-timeout 30 --speed-limit 1024 %s --fail -H \"User-Agent: %s\" %s %s%s" % (output_mode, download_output, user_agent, bearer_auth, cache, quoted_source)
         logging.debug("About to run curl command: %s", curl_command)
         start = int(time.time()*1000)
         command_object = subprocess.Popen([curl_command], shell=True, cwd=dest_dir)
