@@ -405,7 +405,7 @@ def download_http(source, destination, debug, payload):
         # Quote the source URL, which may have weird, dangerous characters
         quoted_source = urllib2.quote(source)
         if scitoken_contents:
-            bearer_auth = "-H \"Authorization: Bearer %s\" " % (scitoken_contents)
+            bearer_auth = "-H \"Authorization: Bearer %s\"" % (scitoken_contents)
         else:
             bearer_auth = ""
         curl_command = "curl %s -L --connect-timeout 30 --speed-limit 1024 %s --fail -H \"User-Agent: %s\" %s%s%s" % (output_mode, download_output, user_agent, bearer_auth, cache, quoted_source)
