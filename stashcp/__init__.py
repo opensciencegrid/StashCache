@@ -24,7 +24,9 @@ import logging
 from urlparse import urlparse
 
 # Version information for user-agent
-VERSION = "5.5.0"
+VERSION = "5.5.1"
+
+user_agent = 'stashcp/{0}'.format(VERSION)
 
 main_redirector = "root://redirector.osgstorage.org"
 stash_origin = "root://stash.osgconnect.net"
@@ -59,12 +61,18 @@ def doWriteBack(source, destination):
         logging.error("Unable to find scitokens.use file")
         return 1
     
+    if debug:
+        output_mode = "-v"
+    else:
+        output_mode = "-s"
+
     # Check if the source file is zero-length
     statinfo = os.stat(source)
     if statinfo.st_size == 0:
-        command = "curl -v --connect-timeout 30 --speed-time 5 --speed-limit 1024 -X PUT --fail --upload-file %s -H \"Authorization: Bearer %s\" %s%s" % (source, scitoken_contents, writeback_host, destination)
+        speed_time = "--speed-time 5 "
     else:
-        command = "curl -v --connect-timeout 30 --speed-limit 1024 -X PUT --fail --upload-file %s -H \"Authorization: Bearer %s\" %s%s" % (source, scitoken_contents, writeback_host, destination)
+        speed_time = ""
+    command = "curl %s --connect-timeout 30 %s--speed-limit 1024 -X PUT --fail --upload-file %s -H \"User-Agent: %s\" -H \"Authorization: Bearer %s\" %s%s" % (output_mode, speed_time, source, user_agent, scitoken_contents, writeback_host, destination)
 
     if 'http_proxy' in os.environ:
         del os.environ['http_proxy']
@@ -390,12 +398,17 @@ def download_http(source, destination, debug, payload):
         if not parsed_url.port:
             cache += ":8000"
         
+        if 'http_proxy' in os.environ:
+            # avoid caching big files in squid
+            del os.environ['http_proxy']
+
         # Quote the source URL, which may have weird, dangerous characters
         quoted_source = urllib2.quote(source)
         if scitoken_contents:
-            curl_command = "curl %s -L --connect-timeout 30 --speed-limit 1024 %s --fail -H \"Authorization: Bearer %s\" %s%s" % (output_mode, download_output, scitoken_contents, cache, quoted_source)
+            bearer_auth = "-H \"Authorization: Bearer %s\"" % (scitoken_contents)
         else:
-            curl_command = "curl %s -L --connect-timeout 30 --speed-limit 1024 %s --fail %s%s" % (output_mode, download_output, cache, quoted_source)
+            bearer_auth = ""
+        curl_command = "curl %s -L --connect-timeout 30 --speed-limit 1024 %s --fail -H \"User-Agent: %s\" %s %s%s" % (output_mode, download_output, user_agent, bearer_auth, cache, quoted_source)
         logging.debug("About to run curl command: %s", curl_command)
         start = int(time.time()*1000)
         command_object = subprocess.Popen([curl_command], shell=True, cwd=dest_dir)
@@ -593,7 +606,7 @@ def get_best_stashcache():
     append_text = "api/v1.0/geo/stashcp"
     
     # Headers for the HTTP request
-    headers = {'Cache-control': 'max-age=0', 'User-Agent': 'stashcp/{0}'.format(VERSION) }
+    headers = {'Cache-control': 'max-age=0', 'User-Agent': user_agent }
     
     # Randomize the geo ip sites
     random.shuffle(geo_ip_sites)
