@@ -1,3 +1,5 @@
+WARNING: this is out of date.  It is only left for historical reasons
+
 ## Usage
 
 ```

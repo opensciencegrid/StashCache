@@ -12,6 +12,7 @@ import urllib2
 import socket
 import random
 import shutil
+import hashlib
 from urlparse import urlparse
 
 try:
@@ -40,6 +41,9 @@ nearest_cache_list = []
 
 # Global variable for the location of the caches.json file
 caches_json_location = None
+
+# Global variable for the name of a pre-configured cache list
+cache_list_name = None
 
 # Global variable for the location of the token to use for reading / writing
 token_location = None
@@ -559,73 +563,78 @@ def get_ips(name):
     # always prefer IPv4
     return ipv4s + ipv6s
 
+# Return best stashcache and set nearest_cache_list global
 def get_best_stashcache():
     global nearest_cache_list
 
-    # Check if the user provided a caches json file location
-    if caches_json_location and os.path.exists(caches_json_location):
-        cache_files = [ caches_json_location ]
-    else:
-        prefix = os.environ.get("OSG_LOCATION", "/")
-        cache_files = [os.path.join(prefix, "etc/stashcache/caches.json"),
-                       os.path.join(prefix, "usr/share/stashcache/caches.json"),
-                       os.path.join(prefix, "usr/local/share/stashcache/caches.json")]
-        if resource_filename:
-            try:
-                cache_files.append(resource_filename(__name__, 'caches.json'))
-            except IOError as ioe:
-                logging.debug("Unable to retrieve caches.json using resource string, trying other locations")
-
-    for cache_file in cache_files:
-        if os.path.isfile(cache_file):
-            with open(cache_file, 'r') as f:
-                caches_list = json.loads(f.read())
-                logging.debug("Loaded caches list from %s", cache_file)
-            break
-    else:
-        logging.error("Unable to find caches.json in %r", cache_files)
-        return None
-
-    # Format the caches for the GeoIP query
-    caches_string = ""
-    usable_caches = []
-    for cache in caches_list:
-        if cache['status'] == 0:
-            continue
-        usable_caches.append(cache)
-        parsed_url = urlparse(cache['name'])
-        caches_string = "%s,%s" % (caches_string, parsed_url.hostname)
-    caches_list = usable_caches
-    # Remove the first comma
-    caches_string = caches_string[1:]
-    
     # Use the geo ip service on the WLCG Web Proxy Auto Discovery machines
     geo_ip_sites = ["wlcg-wpad.cern.ch", "wlcg-wpad.fnal.gov"]
-    
-    # Append text before caches string
-    append_text = "api/v1.0/geo/stashcp"
     
     # Headers for the HTTP request
     headers = {'Cache-control': 'max-age=0', 'User-Agent': user_agent }
     
     # Randomize the geo ip sites
     random.shuffle(geo_ip_sites)
-    order_str = ''
+
+    api_text = ''
+
+    caches_list = []
+
+    # Check if the user provided a caches json file location
+    if caches_json_location and os.path.exists(caches_json_location):
+        # Use geo ip api on caches in provided json file
+        try:
+            with open(caches_json_location, 'r') as f:
+                caches_list = json.loads(f.read())
+                logging.debug("Loaded caches list from %s", caches_json_location)
+        except:
+            logging.error("Unable to open or parse json in %s: %s", 
+                caches_json_location, str(sys.exc_info()[1]))
+            return None
+
+        # Format the caches for the GeoIP query
+        caches_string = ""
+        usable_caches = []
+        for cache in caches_list:
+            if 'status' in cache and cache['status'] == 0:
+                continue
+            if 'name' in cache:
+                usable_caches.append(cache['name'])
+                parsed_url = urlparse(cache['name'])
+                caches_string = "%s,%s" % (caches_string, parsed_url.hostname)
+        if len(usable_caches) == 0:
+            logging.error("No cache names found in %s without zero status", caches_json_location)
+            return None
+
+        caches_list = usable_caches
+
+        # Remove the first comma
+        caches_string = caches_string[1:]
+        
+        api_text = "api/v1.0/geo/stashcp/" + caches_string
+        
+    else:
+        # Use stashservers.dat api
+        api_text = "stashservers.dat"
+        if cache_list_name != None:
+            api_text += '?list=' + cache_list_name
+
+    responselines = []
     i = 0
-    while order_str == '' and i < len(geo_ip_sites):
+    while len(responselines) == 0 and i < len(geo_ip_sites):
         cur_site = geo_ip_sites[i]
         headers['Host'] = cur_site
+        logging.debug("Trying server site of %s", cur_site)
         for ip in get_ips(cur_site):
-            logging.debug("Trying geoip site of: %s [%s]", cur_site, ip)
-            final_url = "http://%s/%s/%s" % (ip, append_text, caches_string)
-            logging.debug("Querying for closest cache: %s", final_url)
+            final_url = "http://%s/%s" % (ip, api_text)
+            logging.debug("Querying %s", final_url)
             try:
                 # Make the request
                 req = urllib2.Request(final_url, headers=headers)
                 response = urllib2.urlopen(req, timeout=10)
                 if response.getcode() == 200:
                     logging.debug("Got OK code 200 from %s", cur_site)
-                    order_str = response.read()
+                    responselines = response.read().split('\n')
                     response.close()
                     break
                 response.close()
@@ -633,26 +642,105 @@ def get_best_stashcache():
                 logging.debug("URL error: %s", str(e))
             except Exception, e:
                 logging.debug("Error: %s", str(e))
-            i+=1
+        i+=1
+
+    order_str = ''
+    if len(responselines) > 0:
+        order_str = responselines[0]
         
     if order_str == '':
+        if len(caches_list) == 0:
+            logging.error("unable to get list of caches")
+            return None
         # Unable to find a geo_ip server to use, return random choice from caches!
-        minsite = random.choice(caches_list)['name']
-        random.shuffle(caches_list)
-        nearest_cache_list = [cache['name'] for cache in caches_list]
+        nearest_cache_list = caches_list
+        random.shuffle(nearest_cache_list)
+        minsite = nearest_cache_list[0]
         logging.warning("Unable to use Geoip to find closest cache!  Returning random cache %s", minsite)
-        logging.debug("Ordered list of nearest caches: %s", str(nearest_cache_list))
+        logging.debug("Randomized list of nearest caches: %s", str(nearest_cache_list))
         return minsite
     else:
         # The order string should be something like:
         # 3,1,2
         ordered_list = order_str.strip().split(",")
         logging.debug("Got order %s", str(ordered_list))
-        minsite = caches_list[int(ordered_list[0])-1]['name']
+
+        if len(caches_list) == 0:
+            # Used the stashservers.dat api
+
+            if len(responselines) < 8:
+                logging.error("stashservers response too short, less than 8 lines")
+                return None
+            hashname = responselines[4][-5:]
+            if hashname != "-sha1":
+                logging.error("stashservers response does not have sha1 hash: %s", hashname)
+                return None
+            hashedtext = '\n'.join(responselines[1:5]) + '\n'
+            hash = hashlib.sha1(hashedtext).hexdigest()
+            if responselines[6] != hash:
+                logging.debug("stashservers hash %s does not match expected hash %s", responselines[6], hash)
+                logging.debug("hashed text:\n%s", hashedtext)
+                logging.error("stashservers response hash does not match expected hash")
+                return None
+
+            if not os.path.exists("/usr/bin/openssl"):
+                logging.debug("openssl not installed, skipping signature check")
+            else:
+                sig = '\n'.join(responselines[7:])
+
+                # Look for the OSG cvmfs public key to verify signature
+                prefix = os.environ.get("OSG_LOCATION", "/")
+                osgpub = 'opensciencegrid.org.pub'
+                pubkey_files = ['/etc/cvmfs/keys/opensciencegrid.org/' + osgpub,
+                                os.path.join(prefix, "etc/stashcache", osgpub),
+                                os.path.join(prefix, "usr/share/stashcache", osgpub)]
+                if resource_filename:
+                    try:
+                        pubkey_files.append(resource_filename(__name__, osgpub))
+                    except IOError as ioe:
+                        logging.debug("Unable to retrieve caches.json using resource string, trying other locations")
+
+                for pubkey_file in pubkey_files:
+                    if os.path.isfile(pubkey_file):
+                        break
+                else:
+                    logging.error("Unable to find osg cvmfs key in %r", pubkey_files)
+                    return None
+                
+                cmd = "/usr/bin/openssl rsautl -verify -pubin -inkey " + pubkey_file
+                logging.debug("Running %s", cmd)
+                p = subprocess.Popen(cmd, shell=True,
+                        stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+                p.stdin.write(sig)
+                p.stdin.close()
+                decryptedhash = p.stdout.read()
+                p.stdout.close()
+                if hash != decryptedhash:
+                    logging.debug("stashservers hash %s does not match decrypted signature %s", hash, decryptedhash)
+                    logging.error("stashservers signature does not verify")
+                    return None
+                logging.debug("Signature matched")
+
+            lists = responselines[4].split(';')
+            logging.debug("Cache lists: %s", lists)
+
+            if cache_list_name == None:
+                caches = lists[0].split('=')[1]
+            else:
+                for l in lists:
+                    n=len(cache_list_name)+1
+                    if l[0:n] == cache_list_name + '=':
+                        caches = l[n:]
+                        break
+            caches_list = caches.split(',')
+            for i in range(len(caches_list)):
+                caches_list[i] = 'root://' + caches_list[i]
+
+        minsite = caches_list[int(ordered_list[0])-1]
 
         nearest_cache_list = []
         for ordered_index in ordered_list:
-            nearest_cache_list.append(caches_list[int(ordered_index)-1]['name'])
+            nearest_cache_list.append(caches_list[int(ordered_index)-1])
         
         logging.debug("Returning closest cache: %s", minsite)
         logging.debug("Ordered list of nearest caches: %s", str(nearest_cache_list))
@@ -663,6 +751,7 @@ def main():
     global nearest_cache
     global nearest_cache_list
     global caches_json_location
+    global cache_list_name
     global token_location
 
     usage = "usage: %prog [options] source destination"
@@ -671,7 +760,9 @@ def main():
     parser.add_option('-r', dest='recursive', action='store_true', help='recursively copy')
     parser.add_option('--closest', action='store_true', help="Return the closest cache and exit")
     parser.add_option('-c', '--cache', dest='cache', help="Cache to use")
-    parser.add_option('-j', '--caches-json', dest='caches_json', help="The JSON file containing the list of caches",
+    parser.add_option('-j', '--caches-json', dest='caches_json', help="A JSON file containing the list of caches",
+                      default=None)
+    parser.add_option('-n', '--cache-list-name', dest='cache_list_name', help="Name of pre-configured cache list to use",
                       default=None)
     parser.add_option('--methods', dest='methods', help="Comma separated list of methods to try, in order.  Default: cvmfs,xrootd,http", default="cvmfs,xrootd,http")
     parser.add_option('-t', '--token', dest='token', help="Token file to use for reading and/or writing")
@@ -691,6 +782,7 @@ def main():
         caches_json_location = os.environ['CACHES_JSON']
     else:
         caches_json_location = args.caches_json
+    cache_list_name = args.cache_list_name
     if args.closest:
         print get_best_stashcache()
         sys.exit(0)
