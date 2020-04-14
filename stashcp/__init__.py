@@ -668,6 +668,34 @@ def get_best_stashcache():
         if len(caches_list) == 0:
             # Used the stashservers.dat api
 
+            # After the geo order of the selected server list on line zero,
+            #  the rest of the response is in .cvmfswhitelist format.
+            # This is done to avoid using https for every request on the
+            #  wlcg-wpad servers and takes advantage of conveniently
+            #  existing infrastructure.
+            # The format contains the following lines:
+            # 1. Creation date stamp, e.g. 20200414170005.  For debugging
+            #    only.
+            # 2. Expiration date stamp, e.g. E20200421170005.  cvmfs clients
+            #    check this to avoid replay attacks, but for this api that
+            #    is not much of a risk so it is ignored.
+            # 3. "Repository" name, e.g. Nstash-servers.  cvmfs clients
+            #    also check this but it is not important here.
+            # 4. With cvmfs the 4th line has a repository fingerprint, but
+            #    for this api it instead contains a semi-colon separated list
+            #    of named server lists.  Each server list is of the form
+            #    name=servers where servers is comma-separated.  Ends with
+            #    "hash=-sha1" because cvmfs_server expects the hash name
+            #    to be there.  e.g.
+            #    xroot=stashcache.t2.ucsd.edu,sg-gftp.pace.gatech.edu;xroots=xrootd-local.unl.edu,stashcache.t2.ucsd.edu;hash=-sha1
+            # 5. A two-dash separator, i.e "--"
+            # 6. The sha1 hash of lines 1 through 4.
+            # 7. The signature, i.e. an RSA encryption of the hash that can
+            #    be decrypted by the OSG cvmfs public key.  Contains binary
+            #    information so it may contain a variable number of newlines
+            #    which would have caused it to have been split into multiple
+            #    response "lines".
+
             if len(responselines) < 8:
                 logging.error("stashservers response too short, less than 8 lines")
                 return None
@@ -683,7 +711,12 @@ def get_best_stashcache():
                 logging.error("stashservers response hash does not match expected hash")
                 return None
 
+            # Call out to /usr/bin/openssl if present, in order to avoid
+            #  python dependency on a crypto package.
             if not os.path.exists("/usr/bin/openssl"):
+                # The signature check isn't critical to be done everywhere;
+                #  any tampering will likely to be caught somewhere and
+                #  investigated.  Usually openssl is present.
                 logging.debug("openssl not installed, skipping signature check")
             else:
                 sig = '\n'.join(responselines[7:])
