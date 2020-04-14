@@ -22,7 +22,7 @@ if [ "${BUILD_TYPE}" = "http" ]; then
   set -e
 
   # Try copying with different destintion filename
-  stashcp --cache=$XRD_CACHE -d /user/dweitzel/public/blast/queries/query1 query.test
+  stashcp --cache=$XRD_CACHE -d /osgconnect/public/dweitzel/blast/queries/query1 query.test
 
   result=`md5sum query.test | awk '{print $1;}'`
 
@@ -33,7 +33,7 @@ if [ "${BUILD_TYPE}" = "http" ]; then
   rm -f query.test
 
   # Perform tests
-  stashcp --cache=$XRD_CACHE -d /user/dweitzel/public/blast/queries/query1 ./
+  stashcp --cache=$XRD_CACHE -d /osgconnect/public/dweitzel/blast/queries/query1 ./
 
   result=`md5sum query1 | awk '{print $1;}'`
 

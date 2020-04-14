@@ -55,14 +55,14 @@ fi
 set -e
 
 # Try copying with no forward slash
-stashcp --cache=$XRD_CACHE user/dweitzel/public/blast/queries/query1 ./
+stashcp --cache=$XRD_CACHE osgconnect/public/dweitzel/blast/queries/query1 ./
 
 result=`md5sum query1 | awk '{print $1;}'`
 
 rm query1
 
 # Try copying with different destintion filename
-stashcp --cache=$XRD_CACHE -d /user/dweitzel/public/blast/queries/query1 query.test
+stashcp --cache=$XRD_CACHE -d /osgconnect/public/dweitzel/blast/queries/query1 query.test
 
 result=`md5sum query.test | awk '{print $1;}'`
 
@@ -73,7 +73,7 @@ fi
 rm -f query.test
 
 # Perform tests
-stashcp --cache=$XRD_CACHE -d /user/dweitzel/public/blast/queries/query1 ./
+stashcp --cache=$XRD_CACHE -d /osgconnect/public/dweitzel/blast/queries/query1 ./
 
 result=`md5sum query1 | awk '{print $1;}'`
 
@@ -83,7 +83,7 @@ fi
 rm -f query.test
 
 # Perform methods test
-stashcp --cache=$XRD_CACHE --method=cvmfs,xrootd -d /user/dweitzel/public/blast/queries/query1 ./
+stashcp --cache=$XRD_CACHE --method=cvmfs,xrootd -d /osgconnect/public/dweitzel/blast/queries/query1 ./
 
 result=`md5sum query1 | awk '{print $1;}'`
 
@@ -93,7 +93,7 @@ fi
 rm -f query.test
 
 # Perform methods test
-stashcp --cache=$XRD_CACHE --method=xrootd -d /user/dweitzel/public/blast/queries/query1 ./
+stashcp --cache=$XRD_CACHE --method=xrootd -d /osgconnect/public/dweitzel//blast/queries/query1 ./
 
 result=`md5sum query1 | awk '{print $1;}'`
 
@@ -103,7 +103,7 @@ fi
 rm -f query.test
 
 # Perform methods test
-stashcp --cache=$XRD_CACHE --method=http,xrootd -d /user/dweitzel/public/blast/queries/query1 ./
+stashcp --cache=$XRD_CACHE --method=http,xrootd -d /osgconnect/public/dweitzel/blast/queries/query1 ./
 
 result=`md5sum query1 | awk '{print $1;}'`
 
@@ -113,7 +113,7 @@ fi
 rm -f query.test
 
 # Scheme test
-stashcp --cache=$XRD_CACHE --method=http,xrootd -d stash:///user/dweitzel/public/blast/queries/query1 file:///tmp
+stashcp --cache=$XRD_CACHE --method=http,xrootd -d stash:///osgconnect/public/dweitzel/blast/queries/query1 file:///tmp
 
 result=`md5sum /tmp/query1 | awk '{print $1;}'`
 
@@ -122,7 +122,7 @@ if [ "$result" != "12bdb9a96cd5e8ca469b727a81593201" ]; then
 fi
 rm -f query.test
 
-stashcp --cache=$XRD_CACHE -d -r /user/dweitzel/public/blast/queries ./
+stashcp --cache=$XRD_CACHE -d -r /osgconnect/public/dweitzel/blast/queries ./
 ls -lah
 
 rm -rf queries
