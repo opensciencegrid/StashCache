@@ -4,7 +4,7 @@
     {"name":"root://osg-new-york-stashcache.nrp.internet2.edu", "status":1},
     {"name":"root://osg-kansas-city-stashcache.nrp.internet2.edu", "status":1},
     {"name":"root://osg-chicago-stashcache.nrp.internet2.edu", "status":1},
-    {"name":"root://fiona.uvalight.net", "status":1, "longitude":4.8995},
+    {"name":"root://fiona.uvalight.net", "status":1},
     {"name":"root://stashcache.t2.ucsd.edu", "status":1},
     {"name":"root://osg-gftp.pace.gatech.edu", "status":1}
 ]
