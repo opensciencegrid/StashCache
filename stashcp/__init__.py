@@ -48,6 +48,9 @@ cache_list_name = None
 # Global variable for the location of the token to use for reading / writing
 token_location = None
 
+# Global variable to print names of cache lists
+print_cache_list_names = False
+
 TIMEOUT = 300
 DIFF = TIMEOUT * 10
 
@@ -680,6 +683,15 @@ def get_stashservers_caches(responselines):
     lists = responselines[4].split(';')
     logging.debug("Cache lists: %s", lists)
 
+    if print_cache_list_names:
+        names = ""
+        # skip hash at the end
+        for l in lists[0:-1]:
+            names = names + ',' + l.split('=')[0]
+        # skip leading comma
+        print(names[1:])
+        sys.exit(0)
+
     if cache_list_name == None:
         caches = lists[0].split('=')[1]
     else:
@@ -812,6 +824,7 @@ def main():
                       default=None)
     parser.add_option('-n', '--cache-list-name', dest='cache_list_name', help="Name of pre-configured cache list to use",
                       default=None)
+    parser.add_option('--list-names', dest='list_names', action='store_true', help="Return the names of pre-configured cache lists and exit (first one is default for -n)")
     parser.add_option('--methods', dest='methods', help="Comma separated list of methods to try, in order.  Default: cvmfs,xrootd,http", default="cvmfs,xrootd,http")
     parser.add_option('-t', '--token', dest='token', help="Token file to use for reading and/or writing")
     args,opts=parser.parse_args()
@@ -826,12 +839,19 @@ def main():
     else:
         logger.setLevel(logging.WARNING)
 
+    if args.list_names:
+        global print_cache_list_names
+        print_cache_list_names = True
+        get_best_stashcache()
+        # does not return
+
     if 'CACHES_JSON' in os.environ:
         caches_json_location = os.environ['CACHES_JSON']
     else:
         caches_json_location = args.caches_json
+
     cache_list_name = args.cache_list_name
-    if args.closest:
+    if args.closest or args.list_names:
         print get_best_stashcache()
         sys.exit(0)
 
