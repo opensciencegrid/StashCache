@@ -856,7 +856,9 @@ def main():
         sys.exit(0)
 
     if len(opts) != 2:
-        parser.error('Source and Destination must be specified on command line')
+        logging.error('Source and Destination must be specified on command line')
+        parser.print_help()
+        sys.exit(1)
     else:
         source=opts[0]
         destination=opts[1]
