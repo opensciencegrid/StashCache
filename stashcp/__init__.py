@@ -845,10 +845,15 @@ def main():
         get_best_stashcache()
         # does not return
 
-    if 'CACHES_JSON' in os.environ:
+    if args.caches_json:
+        caches_json_location = args.caches_json
+    elif 'CACHES_JSON' in os.environ:
         caches_json_location = os.environ['CACHES_JSON']
     else:
-        caches_json_location = args.caches_json
+        prefix = os.environ.get("OSG_LOCATION", "/")
+        caches_file = os.path.join(prefix, "etc/stashcache/caches.json")
+        if os.path.exists(caches_file):
+            caches_json_location = caches_file
 
     cache_list_name = args.cache_list_name
     if args.closest or args.list_names:
