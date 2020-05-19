@@ -25,7 +25,7 @@ import logging
 from urlparse import urlparse
 
 # Version information for user-agent
-VERSION = "5.6.1"
+VERSION = "5.6.2"
 
 user_agent = 'stashcp/{0}'.format(VERSION)
 
