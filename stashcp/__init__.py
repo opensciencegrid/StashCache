@@ -54,7 +54,7 @@ print_cache_list_names = False
 TIMEOUT = 300
 DIFF = TIMEOUT * 10
 
-def doWriteBack(source, destination):
+def doWriteBack(source, destination, debug=False):
     """
     Do a write back to Stash using SciTokens
     
@@ -183,7 +183,7 @@ def doStashCpSingle(sourceFile, destination, methods, debug=False):
         return 1
 
     if dest_url.scheme == "stash":
-        return doWriteBack(source_url.path, dest_url.path)
+        return doWriteBack(source_url.path, dest_url.path, debug)
 
     if dest_url.scheme == "file":
         destination = dest_url.path
