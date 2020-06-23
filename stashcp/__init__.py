@@ -10,12 +10,10 @@ import re
 import os
 import json
 import multiprocessing
-import urllib2
 import socket
 import random
 import shutil
 import hashlib
-from urlparse import urlparse
 
 try:
     from pkg_resources import resource_filename
@@ -24,7 +22,15 @@ except ImportError as e:
 
 
 import logging
-from urlparse import urlparse
+try:
+    from urllib.parse import urlparse
+    from urllib.parse import quote as urlquote
+    from urllib.error import URLError
+    from urllib.request import Request, urlopen
+except ImportError:  # Python 2
+    from urlparse import urlparse
+    from urllib2 import quote as urlquote
+    from urllib2 import URLError, Request, urlopen
 
 # Version information for user-agent
 VERSION = "5.6.2"
@@ -412,7 +418,7 @@ def download_http(source, destination, debug, payload):
             del os.environ['http_proxy']
 
         # Quote the source URL, which may have weird, dangerous characters
-        quoted_source = urllib2.quote(source)
+        quoted_source = urlquote(source)
         if scitoken_contents:
             bearer_auth = "-H \"Authorization: Bearer %s\"" % (scitoken_contents)
         else:
@@ -493,11 +499,11 @@ def es_send(payload):
         data=json.dumps(data)
         try:
             url = "http://uct2-collectd.mwt2.org:9951"
-            req = urllib2.Request(url, data=data, headers={'Content-Type': 'application/json'})
-            f = urllib2.urlopen(req)
+            req = Request(url, data=data, headers={'Content-Type': 'application/json'})
+            f = urlopen(req)
             f.read()
             f.close()
-        except urllib2.URLError as e:
+        except URLError as e:
             logging.warning("Error posting to ES: %s", str(e))
 
     p = multiprocessing.Process(target=_es_send, name="_es_send", args=(payload,))
@@ -691,7 +697,7 @@ def get_stashservers_caches(responselines):
         for l in lists[0:-1]:
             names = names + ',' + l.split('=')[0]
         # skip leading comma
-        print((names[1:]))
+        print(names[1:])
         sys.exit(0)
 
     if cache_list_name == None:
@@ -757,15 +763,15 @@ def get_best_stashcache():
             logging.debug("Querying %s", final_url)
             try:
                 # Make the request
-                req = urllib2.Request(final_url, headers=headers)
-                response = urllib2.urlopen(req, timeout=10)
+                req = Request(final_url, headers=headers)
+                response = urlopen(req, timeout=10)
                 if response.getcode() == 200:
                     logging.debug("Got OK code 200 from %s", cur_site)
                     responselines = response.read().split('\n')
                     response.close()
                     break
                 response.close()
-            except urllib2.URLError as e:
+            except URLError as e:
                 logging.debug("URL error: %s", str(e))
             except Exception as e:
                 logging.debug("Error: %s", str(e))
