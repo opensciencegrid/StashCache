@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+from __future__ import absolute_import
+from __future__ import print_function
 import optparse
 import sys
 import subprocess
@@ -459,7 +461,7 @@ def parse_job_ad():
                 match = re.search('^\s*(Owner|ProjectName)\s=\s"(.*)"', line,  re.IGNORECASE)
                 if match:
                     temp_list[match.group(1)] = match.group(2)
-    except IOError, e:
+    except IOError as e:
         logging.error("Unable to open the .job.ad file")
 
     return temp_list
@@ -495,7 +497,7 @@ def es_send(payload):
             f = urllib2.urlopen(req)
             f.read()
             f.close()
-        except urllib2.URLError, e:
+        except urllib2.URLError as e:
             logging.warning("Error posting to ES: %s", str(e))
 
     p = multiprocessing.Process(target=_es_send, name="_es_send", args=(payload,))
@@ -689,7 +691,7 @@ def get_stashservers_caches(responselines):
         for l in lists[0:-1]:
             names = names + ',' + l.split('=')[0]
         # skip leading comma
-        print(names[1:])
+        print((names[1:]))
         sys.exit(0)
 
     if cache_list_name == None:
@@ -763,9 +765,9 @@ def get_best_stashcache():
                     response.close()
                     break
                 response.close()
-            except urllib2.URLError, e:
+            except urllib2.URLError as e:
                 logging.debug("URL error: %s", str(e))
-            except Exception, e:
+            except Exception as e:
                 logging.debug("Error: %s", str(e))
         i+=1
 
@@ -857,7 +859,7 @@ def main():
 
     cache_list_name = args.cache_list_name
     if args.closest or args.list_names:
-        print get_best_stashcache()
+        print(get_best_stashcache())
         sys.exit(0)
 
     if len(opts) != 2:
