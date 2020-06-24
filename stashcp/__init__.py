@@ -647,7 +647,6 @@ def get_stashservers_caches(responselines_b):
     if len(responselines_b) < 8:
         logging.error("stashservers response too short, less than 8 lines")
         return None
-    assert isinstance(responselines_b[4], bytes)
     hashname_b = responselines_b[4][-5:]
     if hashname_b != b"-sha1":
         logging.error("stashservers response does not have sha1 hash: %s", to_str(hashname_b))
@@ -691,7 +690,6 @@ def get_stashservers_caches(responselines_b):
         
         cmd = "/usr/bin/openssl rsautl -verify -pubin -inkey " + pubkey_file
         logging.debug("Running %s", cmd)
-        assert isinstance(sig, bytes)
         p = subprocess.Popen(cmd, shell=True,
                 stdin=subprocess.PIPE, stdout=subprocess.PIPE)
         p.stdin.write(sig)
@@ -796,7 +794,6 @@ def get_best_stashcache():
 
     order_str = ""
     if len(responselines_b) > 0:
-        assert isinstance(responselines_b[0], bytes)
         order_str = to_str(responselines_b[0])
         
     if order_str == "":
