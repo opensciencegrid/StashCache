@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
 import optparse
 import sys
 import subprocess
@@ -8,12 +9,10 @@ import re
 import os
 import json
 import multiprocessing
-import urllib2
 import socket
 import random
 import shutil
 import hashlib
-from urlparse import urlparse
 
 try:
     from pkg_resources import resource_filename
@@ -22,7 +21,15 @@ except ImportError as e:
 
 
 import logging
-from urlparse import urlparse
+try:
+    from urllib.parse import urlparse
+    from urllib.parse import quote as urlquote
+    from urllib.error import URLError
+    from urllib.request import Request, urlopen
+except ImportError:  # Python 2
+    from urlparse import urlparse
+    from urllib2 import quote as urlquote
+    from urllib2 import URLError, Request, urlopen
 
 # Version information for user-agent
 VERSION = "5.6.2"
@@ -53,6 +60,16 @@ print_cache_list_names = False
 
 TIMEOUT = 300
 DIFF = TIMEOUT * 10
+
+
+def to_str(strlike, encoding="latin-1", errors="backslashescape"):
+    if not isinstance(strlike, str):
+        if str is bytes:
+            return strlike.encode(encoding, errors)
+        else:
+            return strlike.decode(encoding, errors)
+    return strlike
+
 
 def doWriteBack(source, destination, debug=False):
     """
@@ -87,6 +104,7 @@ def doWriteBack(source, destination, debug=False):
     logging.debug("curl command: %s" % command)
     curl=subprocess.Popen([command ],shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
     (stdout, stderr) = curl.communicate()
+    (stdout, stderr) = (to_str(stdout), to_str(stderr))
     curl_exit=curl.returncode
     if statinfo.st_size == 0 and curl_exit == 28:
         logging.debug("Got curl exit code 28, but that's ok for zero-length files.  This doesn't capture connection timeouts")
@@ -298,6 +316,9 @@ def download_xrootd(sourceFile, destination, debug, payload):
     # If the cache is not specified by the command line, then look for the closest
     if not nearest_cache:
         nearest_cache = get_best_stashcache()
+        if not nearest_cache:
+            logging.error("No cache found")
+            return False
     cache = nearest_cache
     logging.debug("Using Cache %s", nearest_cache)
     
@@ -343,7 +364,7 @@ def check_for_xrootd():
     check_command = "xrdcp -V 2>&1"
     logging.debug("Running the command to check of xrdcp existance: %s", check_command)
     command_object = subprocess.Popen([check_command], stdout=subprocess.PIPE, shell=True)
-    xrdcp_version = command_object.communicate()[0]
+    xrdcp_version = to_str(command_object.communicate()[0])
     if command_object.returncode == 0:
         logging.debug("xrdcp version: %s", xrdcp_version)
         return xrdcp_version
@@ -410,7 +431,7 @@ def download_http(source, destination, debug, payload):
             del os.environ['http_proxy']
 
         # Quote the source URL, which may have weird, dangerous characters
-        quoted_source = urllib2.quote(source)
+        quoted_source = urlquote(source)
         if scitoken_contents:
             bearer_auth = "-H \"Authorization: Bearer %s\"" % (scitoken_contents)
         else:
@@ -459,17 +480,17 @@ def parse_job_ad():
                 match = re.search('^\s*(Owner|ProjectName)\s=\s"(.*)"', line,  re.IGNORECASE)
                 if match:
                     temp_list[match.group(1)] = match.group(2)
-    except IOError, e:
+    except IOError as e:
         logging.error("Unable to open the .job.ad file")
 
     return temp_list
 
 def dostashcpdirectory(sourceDir, destination, methods, debug=False):
-    sourceItems = subprocess.Popen(["xrdfs", stash_origin, "ls", sourceDir], stdout=subprocess.PIPE).communicate()[0].split()
+    sourceItems = to_str(subprocess.Popen(["xrdfs", stash_origin, "ls", sourceDir], stdout=subprocess.PIPE).communicate()[0]).split()
     
     for remote_file in sourceItems:
         command2 = 'xrdfs ' + stash_origin + ' stat '+ remote_file + ' | grep "IsDir" | wc -l'
-        isdir=subprocess.Popen([command2],stdout=subprocess.PIPE,shell=True).communicate()[0].split()[0]
+        isdir=to_str(subprocess.Popen([command2],stdout=subprocess.PIPE,shell=True).communicate()[0].split()[0])
         if isdir!='0':
             result = dostashcpdirectory(remote_file, destination, debug)
         else:
@@ -491,11 +512,11 @@ def es_send(payload):
         data=json.dumps(data)
         try:
             url = "http://uct2-collectd.mwt2.org:9951"
-            req = urllib2.Request(url, data=data, headers={'Content-Type': 'application/json'})
-            f = urllib2.urlopen(req)
+            req = Request(url, data=data.encode("utf-8"), headers={'Content-Type': 'application/json'})
+            f = urlopen(req)
             f.read()
             f.close()
-        except urllib2.URLError, e:
+        except (URLError, UnicodeError) as e:
             logging.warning("Error posting to ES: %s", str(e))
 
     p = multiprocessing.Process(target=_es_send, name="_es_send", args=(payload,))
@@ -592,7 +613,7 @@ def get_json_caches(caches_json_location):
 
 
 # Return list of caches as root:// URLs
-def get_stashservers_caches(responselines):
+def get_stashservers_caches(responselines_b):
 
     # After the geo order of the selected server list on line zero,
     #  the rest of the response is in .cvmfswhitelist format.
@@ -622,18 +643,18 @@ def get_stashservers_caches(responselines):
     #    which would have caused it to have been split into multiple
     #    response "lines".
 
-    if len(responselines) < 8:
+    if len(responselines_b) < 8:
         logging.error("stashservers response too short, less than 8 lines")
         return None
-    hashname = responselines[4][-5:]
-    if hashname != "-sha1":
-        logging.error("stashservers response does not have sha1 hash: %s", hashname)
+    hashname_b = responselines_b[4][-5:]
+    if hashname_b != b"-sha1":
+        logging.error("stashservers response does not have sha1 hash: %s", to_str(hashname_b))
         return None
-    hashedtext = '\n'.join(responselines[1:5]) + '\n'
-    hash = hashlib.sha1(hashedtext).hexdigest()
-    if responselines[6] != hash:
-        logging.debug("stashservers hash %s does not match expected hash %s", responselines[6], hash)
-        logging.debug("hashed text:\n%s", hashedtext)
+    hashedtext_b = b'\n'.join(responselines_b[1:5]) + b'\n'
+    hash_str = hashlib.sha1(hashedtext_b).hexdigest()
+    if to_str(responselines_b[6]) != hash_str:
+        logging.debug("stashservers hash %s does not match expected hash %s", to_str(responselines_b[6]), hash_str)
+        logging.debug("hashed text:\n%s", to_str(hashedtext_b))
         logging.error("stashservers response hash does not match expected hash")
         return None
 
@@ -645,7 +666,7 @@ def get_stashservers_caches(responselines):
         #  investigated.  Usually openssl is present.
         logging.debug("openssl not installed, skipping signature check")
     else:
-        sig = '\n'.join(responselines[7:])
+        sig = b'\n'.join(responselines_b[7:])
 
         # Look for the OSG cvmfs public key to verify signature
         prefix = os.environ.get("OSG_LOCATION", "/")
@@ -672,15 +693,15 @@ def get_stashservers_caches(responselines):
                 stdin=subprocess.PIPE, stdout=subprocess.PIPE)
         p.stdin.write(sig)
         p.stdin.close()
-        decryptedhash = p.stdout.read()
+        decryptedhash = to_str(p.stdout.read())
         p.stdout.close()
-        if hash != decryptedhash:
-            logging.debug("stashservers hash %s does not match decrypted signature %s", hash, decryptedhash)
+        if hash_str != decryptedhash:
+            logging.debug("stashservers hash %s does not match decrypted signature %s", hash_str, decryptedhash)
             logging.error("stashservers signature does not verify")
             return None
         logging.debug("Signature matched")
 
-    lists = responselines[4].split(';')
+    lists = to_str(responselines_b[4]).split(';')
     logging.debug("Cache lists: %s", lists)
 
     if print_cache_list_names:
@@ -744,9 +765,9 @@ def get_best_stashcache():
         if cache_list_name != None:
             api_text += "?list=" + cache_list_name
 
-    responselines = []
+    responselines_b = []
     i = 0
-    while len(responselines) == 0 and i < len(geo_ip_sites):
+    while len(responselines_b) == 0 and i < len(geo_ip_sites):
         cur_site = geo_ip_sites[i]
         headers['Host'] = cur_site
         logging.debug("Trying server site of %s", cur_site)
@@ -755,23 +776,24 @@ def get_best_stashcache():
             logging.debug("Querying %s", final_url)
             try:
                 # Make the request
-                req = urllib2.Request(final_url, headers=headers)
-                response = urllib2.urlopen(req, timeout=10)
+                req = Request(final_url, headers=headers)
+                response = urlopen(req, timeout=10)
                 if response.getcode() == 200:
                     logging.debug("Got OK code 200 from %s", cur_site)
-                    responselines = response.read().split('\n')
+                    responsetext_b = response.read()  # type: bytes
+                    responselines_b = responsetext_b.split(b'\n')
                     response.close()
                     break
                 response.close()
-            except urllib2.URLError, e:
+            except URLError as e:
                 logging.debug("URL error: %s", str(e))
-            except Exception, e:
+            except Exception as e:
                 logging.debug("Error: %s", str(e))
         i+=1
 
     order_str = ""
-    if len(responselines) > 0:
-        order_str = responselines[0]
+    if len(responselines_b) > 0:
+        order_str = to_str(responselines_b[0])
         
     if order_str == "":
         if len(caches_list) == 0:
@@ -792,7 +814,7 @@ def get_best_stashcache():
 
         if len(caches_list) == 0:
             # Used the stashservers.dat api
-            caches_list = get_stashservers_caches(responselines)
+            caches_list = get_stashservers_caches(responselines_b)
             if caches_list is None:
                 return None
 
@@ -857,7 +879,7 @@ def main():
 
     cache_list_name = args.cache_list_name
     if args.closest or args.list_names:
-        print get_best_stashcache()
+        print(get_best_stashcache())
         sys.exit(0)
 
     if len(opts) != 2:
