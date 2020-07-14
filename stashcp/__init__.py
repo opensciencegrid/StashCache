@@ -32,7 +32,7 @@ except ImportError:  # Python 2
     from urllib2 import URLError, Request, urlopen
 
 # Version information for user-agent
-VERSION = "5.6.2"
+VERSION = "6.0.0"
 
 user_agent = 'stashcp/{0}'.format(VERSION)
 
