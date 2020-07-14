@@ -511,7 +511,7 @@ def es_send(payload):
         data = payload
         data=json.dumps(data)
         try:
-            url = "http://uct2-collectd.mwt2.org:9951"
+            url = "http://collector.atlas-ml.org:9951"
             req = Request(url, data=data.encode("utf-8"), headers={'Content-Type': 'application/json'})
             f = urlopen(req)
             f.read()
