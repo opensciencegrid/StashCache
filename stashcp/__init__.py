@@ -325,36 +325,52 @@ def download_xrootd(sourceFile, destination, debug, payload):
     xrd_exit = timed_transfer(filename=sourceFile, debug=debug, cache=cache, destination=destination)
 
     payload['xrdexit1']=xrd_exit
+    tries = 1
+    payload['cache1'] = cache
 
     if xrd_exit=='0': #worked first try
         logging.debug("Transfer success using %s", nearest_cache)
-        payload['tries'] = 1
+        status = "First Cache Success"
         payload['cache'] = cache
 
-    else: #pull from origin
-        logging.info("XrdCP from cache failed on %s, pulling from main redirector", nearest_cache)
+    if xrd_exit != '0': # pull from second nearest cache
+        cache = nearest_cache_list[1]
+        logging.info("XrdCP from cache failed on %s, pulling from second nearest cache %s", nearest_cache, cache)
+        xrd_exit = timed_transfer(filename=sourceFile, debug=debug, cache=cache, destination=destination)
+        payload['xrdexit2']=xrd_exit
+        payload['cache2'] = cache
+
+        if xrd_exit=='0':
+            logging.info("Second Cache Success")
+            status = 'Second Cache Success'
+            payload['cache'] = cache
+            tries=2
+
+    if xrd_exit != '0': # pull from the origin
+        logging.info("XrdCP from cache failed on %s, pulling from main redirector", cache)
         cache = main_redirector
         xrd_exit=timed_transfer(filename=sourceFile, cache=cache, debug=debug, destination=destination)
+        payload['xrdexit3']=xrd_exit
+        payload['cache3'] = cache
 
         if xrd_exit=='0':
             logging.info("Trunk Success")
             status = 'Trunk Sucess'
-            tries=2
+            payload['cache'] = cache
+            tries=3
         else:
-            logging.info("stashcp failed after 2 xrootd attempts")
+            logging.info("stashcp failed after 3 xrootd attempts")
             status = 'Timeout'
-            tries = 2
+            tries = 3
 
-        payload['status']=status
-        payload['xrdexit2']=xrd_exit
-        payload['tries']=tries
-        payload['cache'] = cache
+    payload['status']=status
+    
+    payload['tries']=tries
 
-        if xrd_exit == '0':
-            return True
-        else:
-            return False
-    return True
+    if xrd_exit == '0':
+        return True
+    else:
+        return False
 
 def check_for_xrootd():
     """
