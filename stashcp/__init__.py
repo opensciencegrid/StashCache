@@ -333,7 +333,7 @@ def download_xrootd(sourceFile, destination, debug, payload):
         status = "First Cache Success"
         payload['cache'] = cache
 
-    if xrd_exit != '0': # pull from second nearest cache
+    if xrd_exit != '0' and len(nearest_cache_list) >= 2: # pull from second nearest cache
         cache = nearest_cache_list[1]
         logging.info("XrdCP from cache failed on %s, pulling from second nearest cache %s", nearest_cache, cache)
         xrd_exit = timed_transfer(filename=sourceFile, debug=debug, cache=cache, destination=destination)
