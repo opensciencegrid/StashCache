@@ -319,52 +319,28 @@ def download_xrootd(sourceFile, destination, debug, payload):
         if not nearest_cache:
             logging.error("No cache found")
             return False
-    cache = nearest_cache
-    logging.debug("Using Cache %s", nearest_cache)
     
-    xrd_exit = timed_transfer(filename=sourceFile, debug=debug, cache=cache, destination=destination)
-
-    payload['xrdexit1']=xrd_exit
-    tries = 1
-    payload['cache1'] = cache
-
-    if xrd_exit=='0': #worked first try
-        logging.debug("Transfer success using %s", nearest_cache)
-        status = "First Cache Success"
-        payload['cache'] = cache
-
-    if xrd_exit != '0' and len(nearest_cache_list) >= 2: # pull from second nearest cache
-        cache = nearest_cache_list[1]
-        logging.info("XrdCP from cache failed on %s, pulling from second nearest cache %s", nearest_cache, cache)
+    # Try 3 times to download from the 3 nearest caches
+    num_available_caches = len(nearest_cache_list)
+    tries = 0
+    xrd_exit = ""
+    for cache_idx in range(min(3, num_available_caches)): # try 3 caches, or how ever many caches are in the list
+        tries = cache_idx+1
+        cache = nearest_cache_list[cache_idx]
+        logging.debug("Using Cache %s", cache)
         xrd_exit = timed_transfer(filename=sourceFile, debug=debug, cache=cache, destination=destination)
-        payload['xrdexit2']=xrd_exit
-        payload['cache2'] = cache
+        payload['cache' + str(tries)] = cache
+        payload['xrdexit' + str(tries)] = xrd_exit
 
-        if xrd_exit=='0':
-            logging.info("Second Cache Success")
-            status = 'Second Cache Success'
-            payload['cache'] = cache
-            tries=2
-
-    if xrd_exit != '0': # pull from the origin
-        logging.info("XrdCP from cache failed on %s, pulling from main redirector", cache)
-        cache = main_redirector
-        xrd_exit=timed_transfer(filename=sourceFile, cache=cache, debug=debug, destination=destination)
-        payload['xrdexit3']=xrd_exit
-        payload['cache3'] = cache
-
-        if xrd_exit=='0':
-            logging.info("Trunk Success")
-            status = 'Trunk Sucess'
-            payload['cache'] = cache
-            tries=3
+        if xrd_exit=='0': # Transfer worked
+            logging.debug("Transfer success using %s", cache)
+            status = "Cache Success"
+            break # Break out of the for loop, transfer worked!
         else:
-            logging.info("stashcp failed after 3 xrootd attempts")
-            status = 'Timeout'
-            tries = 3
+            logging.debug("xrdcp from cache failed on %s, pulling from next nearest cache", cache)
+            status = "Cache Download Failure"
 
     payload['status']=status
-    
     payload['tries']=tries
 
     if xrd_exit == '0':
