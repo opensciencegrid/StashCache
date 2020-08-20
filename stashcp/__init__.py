@@ -319,42 +319,34 @@ def download_xrootd(sourceFile, destination, debug, payload):
         if not nearest_cache:
             logging.error("No cache found")
             return False
-    cache = nearest_cache
-    logging.debug("Using Cache %s", nearest_cache)
     
-    xrd_exit = timed_transfer(filename=sourceFile, debug=debug, cache=cache, destination=destination)
+    # Try 3 times to download from the 3 nearest caches
+    num_available_caches = len(nearest_cache_list)
+    tries = 0
+    xrd_exit = ""
+    for cache_idx in range(min(4, num_available_caches)): # try 4 caches, or how ever many caches are in the list
+        tries = cache_idx+1
+        cache = nearest_cache_list[cache_idx]
+        logging.debug("Using Cache %s", cache)
+        xrd_exit = timed_transfer(filename=sourceFile, debug=debug, cache=cache, destination=destination)
+        payload['cache' + str(tries)] = cache
+        payload['xrdexit' + str(tries)] = xrd_exit
 
-    payload['xrdexit1']=xrd_exit
-
-    if xrd_exit=='0': #worked first try
-        logging.debug("Transfer success using %s", nearest_cache)
-        payload['tries'] = 1
-        payload['cache'] = cache
-
-    else: #pull from origin
-        logging.info("XrdCP from cache failed on %s, pulling from main redirector", nearest_cache)
-        cache = main_redirector
-        xrd_exit=timed_transfer(filename=sourceFile, cache=cache, debug=debug, destination=destination)
-
-        if xrd_exit=='0':
-            logging.info("Trunk Success")
-            status = 'Trunk Sucess'
-            tries=2
+        if xrd_exit=='0': # Transfer worked
+            logging.debug("Transfer success using %s", cache)
+            status = "Cache Success"
+            break # Break out of the for loop, transfer worked!
         else:
-            logging.info("stashcp failed after 2 xrootd attempts")
-            status = 'Timeout'
-            tries = 2
+            logging.debug("xrdcp from cache failed on %s, pulling from next nearest cache", cache)
+            status = "Cache Download Failure"
 
-        payload['status']=status
-        payload['xrdexit2']=xrd_exit
-        payload['tries']=tries
-        payload['cache'] = cache
+    payload['status']=status
+    payload['tries']=tries
 
-        if xrd_exit == '0':
-            return True
-        else:
-            return False
-    return True
+    if xrd_exit == '0':
+        return True
+    else:
+        return False
 
 def check_for_xrootd():
     """
@@ -408,11 +400,13 @@ def download_http(source, destination, debug, payload):
         download_output = "-O"
         final_destination = os.path.join(dest_dir, os.path.basename(source))
     
-    # Try 2 nearest caches
     success = False
     start = end = 0
     tried_cache = ""
-    for cache in nearest_cache_list[:2]:
+    tries = 0
+    # Try the 4 nearest caches
+    for cache in nearest_cache_list[:min(4, len(nearest_cache_list))]:
+        tries = tries + 1
         tried_cache = cache
         # Parse the nearest_cache url, make sure it uses http
         # Should really use urlparse, but python3 and python2 urlparse imports are 
@@ -455,7 +449,7 @@ def download_http(source, destination, debug, payload):
         payload['filesize'] = filesize
 
     payload['host']=tried_cache
-    payload['tries']=1
+    payload['tries']=tries
     payload['cache']=tried_cache
     if success:
         return True
