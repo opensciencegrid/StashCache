@@ -324,7 +324,7 @@ def download_xrootd(sourceFile, destination, debug, payload):
     num_available_caches = len(nearest_cache_list)
     tries = 0
     xrd_exit = ""
-    for cache_idx in range(min(3, num_available_caches)): # try 3 caches, or how ever many caches are in the list
+    for cache_idx in range(min(4, num_available_caches)): # try 4 caches, or how ever many caches are in the list
         tries = cache_idx+1
         cache = nearest_cache_list[cache_idx]
         logging.debug("Using Cache %s", cache)
@@ -400,13 +400,12 @@ def download_http(source, destination, debug, payload):
         download_output = "-O"
         final_destination = os.path.join(dest_dir, os.path.basename(source))
     
-    # Try 2 nearest caches
     success = False
     start = end = 0
     tried_cache = ""
     tries = 0
-    # Try the 3 nearest caches
-    for cache in nearest_cache_list[:min(3, len(nearest_cache_list)]:
+    # Try the 4 nearest caches
+    for cache in nearest_cache_list[:min(4, len(nearest_cache_list))]:
         tries = tries + 1
         tried_cache = cache
         # Parse the nearest_cache url, make sure it uses http
