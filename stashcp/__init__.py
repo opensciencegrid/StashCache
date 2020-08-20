@@ -404,7 +404,10 @@ def download_http(source, destination, debug, payload):
     success = False
     start = end = 0
     tried_cache = ""
-    for cache in nearest_cache_list[:2]:
+    tries = 0
+    # Try the 3 nearest caches
+    for cache in nearest_cache_list[:min(3, len(nearest_cache_list)]:
+        tries = tries + 1
         tried_cache = cache
         # Parse the nearest_cache url, make sure it uses http
         # Should really use urlparse, but python3 and python2 urlparse imports are 
@@ -447,7 +450,7 @@ def download_http(source, destination, debug, payload):
         payload['filesize'] = filesize
 
     payload['host']=tried_cache
-    payload['tries']=1
+    payload['tries']=tries
     payload['cache']=tried_cache
     if success:
         return True
